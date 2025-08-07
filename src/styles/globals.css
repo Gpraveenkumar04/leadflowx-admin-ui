@@ -8,7 +8,11 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-gray-900 transition-colors duration-200;
+  }
+  
+  .dark body {
+    @apply bg-gray-900 text-white;
   }
 }
 
@@ -23,6 +27,10 @@
   
   .btn-secondary {
     @apply btn bg-white hover:bg-gray-50 focus:ring-primary-500 text-gray-700 border-gray-300;
+  }
+  
+  .dark .btn-secondary {
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-700 focus:ring-offset-gray-900;
   }
   
   .btn-success {
@@ -46,11 +54,19 @@
   }
   
   .card {
-    @apply bg-white shadow-soft rounded-lg border border-gray-200;
+    @apply bg-white shadow-soft rounded-lg border border-gray-200 transition-colors duration-200;
+  }
+  
+  .dark .card {
+    @apply bg-gray-800 border-gray-700;
   }
   
   .card-header {
     @apply px-6 py-4 border-b border-gray-200;
+  }
+  
+  .dark .card-header {
+    @apply border-gray-700;
   }
   
   .card-body {
@@ -65,24 +81,48 @@
     @apply badge bg-success-100 text-success-800;
   }
   
+  .dark .badge-success {
+    @apply bg-success-900/30 text-success-300;
+  }
+  
   .badge-warning {
     @apply badge bg-warning-100 text-warning-800;
+  }
+  
+  .dark .badge-warning {
+    @apply bg-warning-900/30 text-warning-300;
   }
   
   .badge-danger {
     @apply badge bg-danger-100 text-danger-800;
   }
   
+  .dark .badge-danger {
+    @apply bg-danger-900/30 text-danger-300;
+  }
+  
   .badge-primary {
     @apply badge bg-primary-100 text-primary-800;
+  }
+  
+  .dark .badge-primary {
+    @apply bg-primary-900/30 text-primary-300;
   }
   
   .badge-secondary {
     @apply badge bg-gray-100 text-gray-800;
   }
   
+  .dark .badge-secondary {
+    @apply bg-gray-700 text-gray-300;
+  }
+  
   .input {
     @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+  }
+  
+  .dark .input {
+    @apply bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-primary-500 focus:ring-primary-500;
   }
   
   .select {
@@ -93,12 +133,24 @@
     @apply min-w-full divide-y divide-gray-200;
   }
   
+  .dark .table {
+    @apply divide-gray-700;
+  }
+  
   .table-header {
     @apply bg-gray-50;
   }
   
+  .dark .table-header {
+    @apply bg-gray-800;
+  }
+  
   .table-body {
     @apply bg-white divide-y divide-gray-200;
+  }
+  
+  .dark .table-body {
+    @apply bg-gray-800 divide-gray-700;
   }
   
   .table-cell {
@@ -107,6 +159,10 @@
   
   .table-header-cell {
     @apply table-cell font-medium text-gray-500 uppercase tracking-wider;
+  }
+  
+  .dark .table-header-cell {
+    @apply text-gray-300;
   }
 }
 

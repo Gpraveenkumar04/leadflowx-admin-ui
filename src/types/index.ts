@@ -72,6 +72,13 @@ export interface Config {
 export type QAStatus = 'pending' | 'approved' | 'rejected' | 'needs_review';
 export type JobStatus = 'running' | 'completed' | 'failed' | 'paused';
 
+// Tag interface for lead tagging
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 // Enhanced types for the UI
 export interface Lead extends VerifiedLead {
   source?: string;
@@ -85,6 +92,11 @@ export interface Lead extends VerifiedLead {
   qaNotes?: string;
   timeline?: LeadTimeline[];
   actions?: LeadAction[];
+  tags?: Tag[];
+  assigneeId?: string;
+  workflowStatus?: 'pending' | 'in_progress' | 'completed' | 'on_hold' | 'rejected';
+  comments?: Comment[];
+  auditTrail?: AuditEntry[];
 }
 
 export interface LeadTimeline {
@@ -100,6 +112,32 @@ export interface LeadAction {
   label: string;
   icon: string;
   onClick: () => void;
+}
+
+export interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+  author: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  mentions?: string[]; // User IDs that are mentioned
+}
+
+export interface AuditEntry {
+  id: string;
+  action: 'created' | 'updated' | 'status_changed' | 'assigned' | 'tag_added' | 'tag_removed' | 'comment_added';
+  field?: string;
+  oldValue?: string;
+  newValue?: string;
+  timestamp: string;
+  user: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
 }
 
 // Scraping job configuration
@@ -171,6 +209,14 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
+// Saved view interface for persisting filter configurations
+export interface SavedView {
+  id: string;
+  name: string;
+  filters: LeadFilters;
+  sort: TableSort;
+}
+
 // Filter and search types
 export interface LeadFilters {
   search?: string;
@@ -182,6 +228,7 @@ export interface LeadFilters {
   leadScoreMax?: number;
   dateFrom?: string;
   dateTo?: string;
+  tags?: string[];
 }
 
 export interface TableSort {

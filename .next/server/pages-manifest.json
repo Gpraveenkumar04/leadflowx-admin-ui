@@ -2,11 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/dashboard": "pages/dashboard.js",
   "/leads": "pages/leads.js",
-  "/jobs": "pages/jobs.js",
-  "/config": "pages/config.js",
-  "/qa": "pages/qa.js",
-  "/metrics": "pages/metrics.js",
-  "/dev": "pages/dev.js",
-  "/dashboard": "pages/dashboard.js"
+  "/": "pages/index.js"
 }

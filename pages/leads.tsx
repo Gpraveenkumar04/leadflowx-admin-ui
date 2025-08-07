@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   EyeIcon,
   PencilIcon,
@@ -11,13 +11,34 @@ import {
   DocumentArrowDownIcon,
   CheckIcon,
   XMarkIcon,
+  BookmarkIcon,
+  TagIcon,
+  PlusCircleIcon,
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
+import LeadDetail from '../src/components/LeadDetail';
 import { leadsAPI } from '../src/services/api';
 import { Lead, LeadFilters, TableSort, QAStatus, DATA_SOURCES } from '../src/types';
 import { clsx } from 'clsx';
+import BulkActions from '../src/components/BulkActions';
+
+interface SavedView {
+  id: string;
+  name: string;
+  filters: LeadFilters;
+  sort: TableSort;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface LeadTableProps {
+  onAddTag: (leadId: number, tag: Tag) => void;
+  onRemoveTag: (leadId: number, tagId: string) => void;
+  tags: Tag[];
   leads: Lead[];
   onLeadSelect: (lead: Lead) => void;
   onLeadUpdate: (lead: Lead) => void;
@@ -33,9 +54,13 @@ const LeadTable: React.FC<LeadTableProps> = ({
   selectedLeads,
   onSelectLead,
   onSelectAll,
+  onAddTag,
+  onRemoveTag,
+  tags,
 }) => {
   const [editingField, setEditingField] = useState<{ id: number; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [showTagMenu, setShowTagMenu] = useState<number | null>(null);
 
   const handleEdit = (id: number, field: string, currentValue: string) => {
     setEditingField({ id, field });
@@ -106,6 +131,7 @@ const LeadTable: React.FC<LeadTableProps> = ({
               <th className="table-header-cell">Audit Score</th>
               <th className="table-header-cell">QA Status</th>
               <th className="table-header-cell">Lead Score</th>
+              <th className="table-header-cell">Tags</th>
               <th className="table-header-cell">Actions</th>
             </tr>
           </thead>
@@ -217,6 +243,57 @@ const LeadTable: React.FC<LeadTableProps> = ({
                   {getScoreBadge(lead.leadScore)}
                 </td>
                 <td className="table-cell">
+                  <div className="flex flex-wrap gap-1 items-center">
+                    {lead.tags?.map(tag => (
+                      <span 
+                        key={tag.id}
+                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                        style={{ backgroundColor: tag.color + '20', color: tag.color }}
+                      >
+                        {tag.name}
+                        <button
+                          onClick={() => onRemoveTag(lead.id, tag.id)}
+                          className="ml-1 text-xs hover:text-gray-500"
+                        >
+                          <XMarkIcon className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <button
+                      onClick={() => setShowTagMenu(lead.id)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <TagIcon className="h-4 w-4" />
+                    </button>
+                    
+                    {showTagMenu === lead.id && (
+                      <div className="absolute mt-8 z-10 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                        {tags.filter(tag => !lead.tags?.some(t => t.id === tag.id)).map(tag => (
+                          <button
+                            key={tag.id}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => {
+                              onAddTag(lead.id, tag);
+                              setShowTagMenu(null);
+                            }}
+                          >
+                            <span
+                              className="inline-block w-3 h-3 rounded-full mr-2"
+                              style={{ backgroundColor: tag.color }}
+                            ></span>
+                            {tag.name}
+                          </button>
+                        ))}
+                        {tags.filter(tag => !lead.tags?.some(t => t.id === tag.id)).length === 0 && (
+                          <div className="px-4 py-2 text-sm text-gray-500">
+                            All tags added
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="table-cell">
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => onLeadSelect(lead)}
@@ -251,6 +328,22 @@ export default function LeadsPage() {
   const [filters, setFilters] = useState<LeadFilters>({});
   const [sort, setSort] = useState<TableSort>({ field: 'createdAt', direction: 'desc' });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 25, total: 0, totalPages: 0 });
+  
+  // Saved Views state
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
+  const [newViewName, setNewViewName] = useState('');
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedViewId, setSelectedViewId] = useState<string | null>(null);
+  
+  // Tags state
+  const [tags, setTags] = useState<Tag[]>([
+    { id: '1', name: 'Hot Lead', color: '#ef4444' },
+    { id: '2', name: 'Follow Up', color: '#3b82f6' },
+    { id: '3', name: 'VIP', color: '#f59e0b' },
+    { id: '4', name: 'New', color: '#10b981' }
+  ]);
+  const [showTagPicker, setShowTagPicker] = useState(false);
+  const [tagLeadId, setTagLeadId] = useState<number | null>(null);
 
   // Fetch leads
   useEffect(() => {
@@ -333,6 +426,138 @@ export default function LeadsPage() {
       console.error('Failed to export leads:', error);
     }
   };
+  
+  // Saved Views handlers
+  useEffect(() => {
+    // Load saved views and tags from API on component mount
+    const loadSavedViewsAndTags = async () => {
+      try {
+        // In a real implementation, this would be API calls
+        // const viewsResponse = await leadsAPI.getSavedViews();
+        // setSavedViews(viewsResponse);
+        
+        // const tagsResponse = await leadsAPI.getTags();
+        // setTags(tagsResponse);
+        
+        // For now, we'll use local storage for saved views
+        const storedViews = localStorage.getItem('leadflowx-saved-views');
+        if (storedViews) {
+          try {
+            const parsedViews = JSON.parse(storedViews);
+            setSavedViews(parsedViews);
+          } catch (error) {
+            console.error('Failed to parse saved views:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load saved views or tags:', error);
+      }
+    };
+    
+    loadSavedViewsAndTags();
+  }, []);
+
+  const saveCurrentView = async () => {
+    if (!newViewName.trim()) return;
+    
+    try {
+      // In a real implementation, this would be an API call
+      // const newView = await leadsAPI.createSavedView(newViewName.trim(), filters, sort);
+      // setSavedViews(prev => [...prev, newView]);
+      
+      // For now, we'll use local storage
+      const newView: SavedView = {
+        id: Date.now().toString(),
+        name: newViewName.trim(),
+        filters: { ...filters },
+        sort: { ...sort }
+      };
+      
+      const updatedViews = [...savedViews, newView];
+      setSavedViews(updatedViews);
+      
+      // Save to local storage
+      localStorage.setItem('leadflowx-saved-views', JSON.stringify(updatedViews));
+      
+      setNewViewName('');
+      setIsViewModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save view:', error);
+    }
+  };
+  
+  const deleteView = async (id: string) => {
+    try {
+      // In a real implementation, this would be an API call
+      // await leadsAPI.deleteSavedView(id);
+      
+      // For now, we'll use local storage
+      const updatedViews = savedViews.filter(view => view.id !== id);
+      setSavedViews(updatedViews);
+      localStorage.setItem('leadflowx-saved-views', JSON.stringify(updatedViews));
+      
+      if (selectedViewId === id) {
+        setSelectedViewId(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete view:', error);
+    }
+  };
+  
+  const applyView = (view: SavedView) => {
+    setFilters(view.filters);
+    setSort(view.sort);
+    setSelectedViewId(view.id);
+  };
+  
+  // Tags handlers
+  const handleAddTag = async (leadId: number, tag: Tag) => {
+    try {
+      // In a real implementation, this would call an API
+      // await leadsAPI.addTag(leadId, tag.id);
+      
+      // For now, we'll update the local state
+      setLeads(prev => prev.map(lead => {
+        if (lead.id === leadId) {
+          return {
+            ...lead,
+            tags: [...(lead.tags || []), tag]
+          };
+        }
+        return lead;
+      }));
+      
+      setTagLeadId(null);
+      setShowTagPicker(false);
+    } catch (error) {
+      console.error('Failed to add tag:', error);
+    }
+  };
+  
+  const handleRemoveTag = async (leadId: number, tagId: string) => {
+    try {
+      // In a real implementation, this would call an API
+      // await leadsAPI.removeTag(leadId, tagId);
+      
+      // For now, we'll update the local state
+      setLeads(prev => prev.map(lead => {
+        if (lead.id === leadId) {
+          return {
+            ...lead,
+            tags: (lead.tags || []).filter(tag => tag.id !== tagId)
+          };
+        }
+        return lead;
+      }));
+    } catch (error) {
+      console.error('Failed to remove tag:', error);
+    }
+  };
+  
+  const openTagPicker = (leadId: number) => {
+    setTagLeadId(leadId);
+    setShowTagPicker(true);
+  };
 
   if (loading) {
     return (
@@ -348,37 +573,95 @@ export default function LeadsPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="md:flex md:items-center md:justify-between">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-              Lead Management
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage and review your lead database
-            </p>
-          </div>
-          <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
-            {selectedLeads.length > 0 && (
-              <>
-                <button onClick={handleBulkApprove} className="btn btn-success btn-sm">
-                  Approve Selected ({selectedLeads.length})
+        {selectedLead ? (
+          <LeadDetail 
+            lead={selectedLead}
+            onBack={() => setSelectedLead(null)}
+            onUpdate={handleLeadUpdate}
+          />
+        ) : (
+          <>
+            {/* Header */}
+            <div className="md:flex md:items-center md:justify-between">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                  Lead Management
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Manage and review your lead database
+                </p>
+              </div>
+              <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+                {selectedLeads.length > 0 && (
+                  <>
+                    <button onClick={handleBulkApprove} className="btn btn-success btn-sm">
+                      Approve Selected ({selectedLeads.length})
+                    </button>
+                    <button onClick={handleBulkReject} className="btn btn-danger btn-sm">
+                      Reject Selected
+                    </button>
+                  </>
+                )}
+                <button onClick={handleExport} className="btn btn-secondary btn-sm">
+                  <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                  Export CSV
                 </button>
-                <button onClick={handleBulkReject} className="btn btn-danger btn-sm">
-                  Reject Selected
-                </button>
-              </>
-            )}
-            <button onClick={handleExport} className="btn btn-secondary btn-sm">
-              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-              Export CSV
-            </button>
-          </div>
-        </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Filters */}
         <div className="card">
           <div className="card-body">
+            <div className="flex justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <h3 className="text-lg font-medium">Filters</h3>
+                <div className="relative">
+                  <div className="flex space-x-2">
+                    <select
+                      value={selectedViewId || ''}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const view = savedViews.find(v => v.id === e.target.value);
+                          if (view) applyView(view);
+                        } else {
+                          setSelectedViewId(null);
+                        }
+                      }}
+                      className="select"
+                    >
+                      <option value="">Select saved view</option>
+                      {savedViews.map(view => (
+                        <option key={view.id} value={view.id}>
+                          {view.name}
+                        </option>
+                      ))}
+                    </select>
+                    
+                    {selectedViewId && (
+                      <button
+                        onClick={() => deleteView(selectedViewId)}
+                        className="btn btn-danger btn-sm"
+                        title="Delete this view"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setIsViewModalOpen(true)}
+                  className="btn btn-primary btn-sm inline-flex items-center"
+                >
+                  <BookmarkIcon className="h-4 w-4 mr-1" />
+                  Save Current View
+                </button>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Search</label>
@@ -437,6 +720,24 @@ export default function LeadsPage() {
                   className="input mt-1"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tags</label>
+                <select
+                  value={filters.tags?.[0] || ''}
+                  onChange={(e) => setFilters(prev => ({ 
+                    ...prev, 
+                    tags: e.target.value ? [e.target.value] : undefined 
+                  }))}
+                  className="select mt-1"
+                >
+                  <option value="">All Tags</option>
+                  {tags.map(tag => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -449,6 +750,16 @@ export default function LeadsPage() {
           selectedLeads={selectedLeads}
           onSelectLead={handleSelectLead}
           onSelectAll={handleSelectAll}
+          onAddTag={handleAddTag}
+          onRemoveTag={handleRemoveTag}
+          tags={tags}
+        />
+
+        <BulkActions
+          selectedItems={selectedLeads.map(String)}
+          onApprove={handleBulkApprove}
+          onReject={handleBulkReject}
+          onReassign={() => console.log('Reassign action triggered')}
         />
 
         {/* Pagination */}
@@ -505,6 +816,126 @@ export default function LeadsPage() {
             </div>
           </div>
         </div>
+        
+        {/* Save View Modal */}
+        {isViewModalOpen && (
+          <div className="fixed inset-0 overflow-y-auto z-50">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+              
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
+              
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Save Current View
+                      </h3>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Save your current filters and sorting options for quick access later.
+                        </p>
+                        <div className="mt-4">
+                          <label htmlFor="viewName" className="block text-sm font-medium text-gray-700">
+                            View Name
+                          </label>
+                          <input
+                            type="text"
+                            id="viewName"
+                            className="input mt-1 w-full"
+                            value={newViewName}
+                            onChange={(e) => setNewViewName(e.target.value)}
+                            placeholder="Enter a name for this view"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    className="btn btn-primary sm:ml-3"
+                    onClick={saveCurrentView}
+                    disabled={!newViewName.trim()}
+                  >
+                    Save View
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setIsViewModalOpen(false);
+                      setNewViewName('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Tag Picker Modal */}
+        {showTagPicker && tagLeadId !== null && (
+          <div className="fixed inset-0 overflow-y-auto z-50">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+              
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
+              
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Add Tags
+                      </h3>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Select tags to add to this lead
+                        </p>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                          {tags.map(tag => (
+                            <button
+                              key={tag.id}
+                              className="flex items-center p-2 border rounded hover:bg-gray-50"
+                              onClick={() => handleAddTag(tagLeadId, tag)}
+                            >
+                              <span
+                                className="w-4 h-4 rounded-full mr-2"
+                                style={{ backgroundColor: tag.color }}
+                              ></span>
+                              <span>{tag.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowTagPicker(false);
+                      setTagLeadId(null);
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

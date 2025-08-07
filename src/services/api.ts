@@ -9,7 +9,11 @@ import {
   LeadFilters,
   TableSort,
   Config,
-  AppConfig
+  AppConfig,
+  Tag,
+  SavedView,
+  Comment,
+  AuditEntry
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -160,6 +164,77 @@ export const leadsAPI = {
       responseType: 'blob'
     });
     return response.data;
+  },
+  
+  // Tag related functions
+  async addTag(leadId: number, tagId: string): Promise<void> {
+    await apiClient.post(`/api/leads/${leadId}/tags`, { tagId });
+  },
+  
+  async removeTag(leadId: number, tagId: string): Promise<void> {
+    await apiClient.delete(`/api/leads/${leadId}/tags/${tagId}`);
+  },
+  
+  async getTags(): Promise<Tag[]> {
+    const response = await apiClient.get<ApiResponse<Tag[]>>('/api/tags');
+    return response.data.data || [];
+  },
+  
+  async createTag(name: string, color: string): Promise<Tag> {
+    const response = await apiClient.post<ApiResponse<Tag>>('/api/tags', { name, color });
+    return response.data.data!;
+  },
+  
+  async updateTag(id: string, data: Partial<Tag>): Promise<Tag> {
+    const response = await apiClient.patch<ApiResponse<Tag>>(`/api/tags/${id}`, data);
+    return response.data.data!;
+  },
+  
+  async deleteTag(id: string): Promise<void> {
+    await apiClient.delete(`/api/tags/${id}`);
+  },
+  
+  // Saved Views functions
+  async getSavedViews(): Promise<SavedView[]> {
+    const response = await apiClient.get<ApiResponse<SavedView[]>>('/api/saved-views');
+    return response.data.data || [];
+  },
+  
+  async createSavedView(name: string, filters: LeadFilters, sort: TableSort): Promise<SavedView> {
+    const response = await apiClient.post<ApiResponse<SavedView>>('/api/saved-views', { name, filters, sort });
+    return response.data.data!;
+  },
+  
+  async updateSavedView(id: string, data: Partial<SavedView>): Promise<SavedView> {
+    const response = await apiClient.patch<ApiResponse<SavedView>>(`/api/saved-views/${id}`, data);
+    return response.data.data!;
+  },
+  
+  async deleteSavedView(id: string): Promise<void> {
+    await apiClient.delete(`/api/saved-views/${id}`);
+  },
+  
+  // Comments functions
+  async getComments(leadId: number): Promise<Comment[]> {
+    const response = await apiClient.get<ApiResponse<Comment[]>>(`/api/leads/${leadId}/comments`);
+    return response.data.data || [];
+  },
+  
+  async addComment(leadId: number, text: string, mentions: string[] = []): Promise<Comment> {
+    const response = await apiClient.post<ApiResponse<Comment>>(`/api/leads/${leadId}/comments`, {
+      text,
+      mentions
+    });
+    return response.data.data!;
+  },
+  
+  async deleteComment(leadId: number, commentId: string): Promise<void> {
+    await apiClient.delete(`/api/leads/${leadId}/comments/${commentId}`);
+  },
+  
+  async getAuditTrail(leadId: number): Promise<AuditEntry[]> {
+    const response = await apiClient.get<ApiResponse<AuditEntry[]>>(`/api/leads/${leadId}/audit-trail`);
+    return response.data.data || [];
   }
 };
 

@@ -11,64 +11,78 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import Layout from '../src/components/Layout';
 import { dashboardAPI } from '../src/services/api';
 import { DashboardMetrics } from '../src/types';
+import { io } from 'socket.io-client';
+import { useQuery } from '@tanstack/react-query';
+import { z } from 'zod';
+import MetricCard from '../src/components/MetricCard';
 
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  change?: {
-    value: number;
-    type: 'increase' | 'decrease';
-  };
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  color: string;
-}
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon: Icon, color }) => (
+// Define schema for anomaly detection
+const AnomalySchema = z.object({
+  metric: z.string(),
+  value: z.number(),
+  anomaly: z.boolean(),
+});
+
+// Predictive metrics and anomaly detection
+const fetchPredictiveMetrics = async () => {
+  const response = await dashboardAPI.getPredictiveMetrics();
+  return response.map((item) => AnomalySchema.parse(item));
+};
+
+const DrillDownChart: React.FC<{ data: any[] }> = ({ data }) => (
   <div className="card">
+    <div className="card-header">
+      <h3 className="text-lg leading-6 font-medium text-gray-900">Detailed Analytics</h3>
+      <p className="mt-1 text-sm text-gray-500">Click on a bar to view detailed data</p>
+    </div>
     <div className="card-body">
-      <div className="flex items-center">
-        <div className="flex-shrink-0">
-          <div className={`p-3 rounded-lg ${color}`}>
-            <Icon className="h-6 w-6 text-white" />
-          </div>
-        </div>
-        <div className="ml-5 w-0 flex-1">
-          <dl>
-            <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
-            <dd className="flex items-baseline">
-              <div className="text-2xl font-semibold text-gray-900">{value}</div>
-              {change && (
-                <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                  change.type === 'increase' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {change.type === 'increase' ? (
-                    <ArrowUpIcon className="self-center flex-shrink-0 h-4 w-4" />
-                  ) : (
-                    <ArrowDownIcon className="self-center flex-shrink-0 h-4 w-4" />
-                  )}
-                  <span className="sr-only">{change.type === 'increase' ? 'Increased' : 'Decreased'} by</span>
-                  {Math.abs(change.value)}%
-                </div>
-              )}
-            </dd>
-          </dl>
-        </div>
-      </div>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          onClick={(e) => console.log('Drill-down data:', e)}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="source" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="count" fill="#3B82F6" />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   </div>
 );
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const AccessibleButton: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
+  <button
+    className="btn btn-primary"
+    onClick={onClick}
+    aria-label={label}
+  >
+    {label}
+  </button>
+);
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
 
+  const socket = io('http://your-websocket-server-url');
+
+  useEffect(() => {
+    socket.on('dashboardMetrics', (data) => {
+      setMetrics(data);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
   }, [selectedTimeRange]);
 
   const fetchDashboardData = async () => {
@@ -82,6 +96,11 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  const { data: predictiveMetrics, isLoading: predictiveLoading } = useQuery({
+    queryKey: ['predictiveMetrics'],
+    queryFn: fetchPredictiveMetrics
+  });
 
   if (loading) {
     return (
@@ -106,6 +125,16 @@ export default function Dashboard() {
       <Layout>
         <div className="text-center py-12">
           <p className="text-gray-500">Failed to load dashboard data</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (predictiveLoading) {
+    return (
+      <Layout>
+        <div className="animate-pulse">
+          <p>Loading predictive metrics...</p>
         </div>
       </Layout>
     );
@@ -300,6 +329,29 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Predictive Metrics Section */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Predictive Metrics</h3>
+            <p className="mt-1 text-sm text-gray-500">Insights and anomaly detection</p>
+          </div>
+          <div className="card-body">
+            <ul>
+              {predictiveMetrics.map((metric, index) => (
+                <li key={index} className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">{metric.metric}</span>
+                  <span className={`text-sm font-semibold ${metric.anomaly ? 'text-red-600' : 'text-green-600'}`}>
+                    {metric.value} {metric.anomaly && '(Anomaly)'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Drill Down Chart */}
+        <DrillDownChart data={metrics.leadsBySource} />
       </div>
     </Layout>
   );
