@@ -80,6 +80,27 @@ export const dashboardAPI = {
     const response = await apiClient.get<ApiResponse<any>>('/api/metrics/sla');
     return response.data.data!;
   }
+  ,
+  // Stub for predictive metrics/anomaly detection
+  async getPredictiveMetrics(): Promise<any[]> {
+    // Return mock anomaly data
+    return [
+      {
+        id: 1,
+        metric: 'Lead Conversion Rate',
+        anomalyScore: 0.92,
+        timestamp: new Date().toISOString(),
+        description: 'Unusual spike in conversion rate detected.'
+      },
+      {
+        id: 2,
+        metric: 'Scrape Time',
+        anomalyScore: 0.85,
+        timestamp: new Date().toISOString(),
+        description: 'Scrape time anomaly detected.'
+      }
+    ];
+  }
 };
 
 // Leads API

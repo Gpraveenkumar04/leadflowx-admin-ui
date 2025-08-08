@@ -53,6 +53,7 @@ const navigation: NavigationItem[] = [
     ]
   },
   { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
+  { name: 'Scraper Workers', href: '/scraper-workers', icon: Cog6ToothIcon },
   { name: 'QA Queue', href: '/qa', icon: CheckCircleIcon, badge: 12 },
   { name: 'Metrics', href: '/metrics', icon: ChartBarIcon },
   { 

@@ -338,7 +338,7 @@ export default function Dashboard() {
           </div>
           <div className="card-body">
             <ul>
-              {predictiveMetrics.map((metric, index) => (
+              {predictiveMetrics && predictiveMetrics.map((metric, index) => (
                 <li key={index} className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">{metric.metric}</span>
                   <span className={`text-sm font-semibold ${metric.anomaly ? 'text-red-600' : 'text-green-600'}`}>

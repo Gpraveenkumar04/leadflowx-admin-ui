@@ -2,7 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/scraper-workers": "pages/scraper-workers.js",
+  "/jobs": "pages/jobs.js",
   "/dashboard": "pages/dashboard.js",
-  "/leads": "pages/leads.js",
   "/": "pages/index.js"
 }

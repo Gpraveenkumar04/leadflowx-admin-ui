@@ -57,24 +57,24 @@ export default function ConfigPage() {
   const handleConfigChange = (path: string, value: any) => {
     const keys = path.split('.');
     const updatedChanges = { ...changes };
-    
-    let current = updatedChanges;
+
+    let current: Record<string, any> = updatedChanges;
     for (let i = 0; i < keys.length - 1; i++) {
       if (!current[keys[i]]) {
         current[keys[i]] = {};
       }
-      current = current[keys[i]];
+      current = current[keys[i]] as Record<string, any>;
     }
     current[keys[keys.length - 1]] = value;
-    
+
     setChanges(updatedChanges);
     setHasUnsavedChanges(true);
   };
 
   const getCurrentValue = (path: string) => {
     const keys = path.split('.');
-    let current = { ...config, ...changes };
-    
+    let current: any = { ...config, ...changes };
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
@@ -82,8 +82,17 @@ export default function ConfigPage() {
         return undefined;
       }
     }
-    
-    return current;
+
+    // Only return primitives, not objects
+    if (
+      typeof current === 'string' ||
+      typeof current === 'number' ||
+      typeof current === 'boolean' ||
+      current === undefined
+    ) {
+      return current;
+    }
+    return undefined;
   };
 
   const handleSave = async () => {

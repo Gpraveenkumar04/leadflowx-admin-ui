@@ -9,7 +9,8 @@ import {
   CogIcon,
   PlusIcon,
   EyeIcon,
-  XMarkIcon
+  XMarkIcon,
+  BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
 import { jobsAPI } from '../src/services/api';
@@ -40,10 +41,10 @@ const JobForm: React.FC<JobFormProps> = ({ isOpen, onClose, onSubmit, initialDat
     concurrency: initialData?.concurrency || 5
   });
 
-  const [errors, setErrors] = useState<Partial<JobFormData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof JobFormData, string>>>({});
 
   const validateForm = () => {
-    const newErrors: Partial<JobFormData> = {};
+  const newErrors: Partial<Record<keyof JobFormData, string>> = {};
     
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
@@ -527,7 +528,7 @@ export default function JobsPage() {
           onSubmit={editingJob ? handleUpdateJob : handleCreateJob}
           initialData={editingJob ? {
             name: editingJob.name,
-            source: editingJob.source,
+            source: editingJob.source as DataSource,
             filters: JSON.stringify(editingJob.filters, null, 2),
             cron: editingJob.cron,
             concurrency: editingJob.concurrency
