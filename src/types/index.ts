@@ -77,6 +77,8 @@ export interface Tag {
   id: string;
   name: string;
   color: string;
+  /** Indicates this tag exists only locally and is pending sync with backend */
+  pending?: boolean;
 }
 
 // Enhanced types for the UI

@@ -28,6 +28,7 @@ import AuditTrail, { AuditEvent } from './AuditTrail';
 import UserAssignment from './UserAssignment';
 import WorkflowStatus from './WorkflowStatus';
 import { clsx } from 'clsx';
+import JsonTree from './JsonTree';
 
 interface LeadDetailProps {
   lead: Lead;
@@ -44,7 +45,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
   const [formData, setFormData] = useState<Partial<Lead>>({});
   const [comments, setComments] = useState<Comment[]>([]);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'audit'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'audit' | 'raw'>('details');
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [loading, setLoading] = useState({
     comments: true,
@@ -552,6 +553,18 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
             >
               Audit Trail
             </button>
+            <button
+              onClick={() => setActiveTab('raw')}
+              className={clsx(
+                "py-2 px-1 border-b-2 font-medium text-sm",
+                activeTab === 'raw'
+                  ? "border-primary-500 text-primary-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              )}
+              aria-current={activeTab === 'raw' ? 'page' : undefined}
+            >
+              Raw JSON
+            </button>
           </nav>
         </div>
       </div>
@@ -781,6 +794,16 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
                   title="Complete Activity History"
                   maxHeight="600px"
                 />
+              </div>
+            </div>
+          )}
+          {activeTab === 'raw' && (
+            <div className="card bg-white shadow-sm rounded-lg overflow-hidden transition-all duration-200">
+              <div className="card-body p-6">
+                <h3 className="text-base font-medium text-gray-900 mb-4">Lead Object (Debug)</h3>
+                <div className="border rounded-md bg-gray-50 p-3 max-h-[600px] overflow-auto text-sm">
+                  <JsonTree data={lead} initiallyExpanded={2} />
+                </div>
               </div>
             </div>
           )}

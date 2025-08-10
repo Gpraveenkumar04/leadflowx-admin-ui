@@ -106,10 +106,11 @@ export const dashboardAPI = {
 // Leads API
 export const leadsAPI = {
   async getLeads(
-    page: number = 1, 
-    pageSize: number = 25, 
-    filters?: LeadFilters, 
-    sort?: TableSort
+    page: number = 1,
+    pageSize: number = 25,
+    filters?: LeadFilters,
+    sort?: TableSort,
+    signal?: AbortSignal
   ): Promise<PaginatedResponse<Lead>> {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -133,7 +134,7 @@ export const leadsAPI = {
       params.append('sortDirection', sort.direction);
     }
 
-    const response = await apiClient.get<PaginatedResponse<Lead>>(`/api/leads?${params.toString()}`);
+  const response = await apiClient.get<PaginatedResponse<Lead>>(`/api/leads?${params.toString()}`,{ signal });
     return response.data;
   },
 

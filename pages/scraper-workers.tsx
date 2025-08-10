@@ -13,7 +13,8 @@ import { useRouter } from 'next/router';
 
 export default function ScraperWorkersPage() {
   const router = useRouter();
-  const [scrapers, setScrapers] = useState([
+  interface ScraperRow { id: number; name: string; status: 'running' | 'paused' | 'error' | 'idle'; lastRun: string; leadsScraped: number; avgRuntime: string; }
+  const [scrapers, setScrapers] = useState<ScraperRow[]>([
     { id: 1, name: 'Google Maps Scraper', status: 'running', lastRun: '10 minutes ago', leadsScraped: 1254, avgRuntime: '45m' },
     { id: 2, name: 'LinkedIn Scraper', status: 'paused', lastRun: '2 hours ago', leadsScraped: 872, avgRuntime: '32m' },
     { id: 3, name: 'Facebook Scraper', status: 'error', lastRun: '1 day ago', leadsScraped: 156, avgRuntime: '15m' },
@@ -23,13 +24,13 @@ export default function ScraperWorkersPage() {
   
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleStatusChange = (scraperId, newStatus) => {
+  const handleStatusChange = (scraperId: number, newStatus: ScraperRow['status']) => {
     setScrapers(scrapers.map(scraper => 
       scraper.id === scraperId ? {...scraper, status: newStatus} : scraper
     ));
   };
   
-  const getStatusBadgeColor = (status) => {
+  const getStatusBadgeColor = (status: ScraperRow['status']) => {
     switch(status) {
       case 'running': return 'bg-green-100 text-green-800';
       case 'paused': return 'bg-yellow-100 text-yellow-800';
@@ -39,7 +40,7 @@ export default function ScraperWorkersPage() {
     }
   };
   
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: ScraperRow['status']) => {
     switch(status) {
       case 'running': return <PlayCircleIcon className="h-5 w-5 text-green-500" />;
       case 'paused': return <PauseCircleIcon className="h-5 w-5 text-yellow-500" />;

@@ -181,7 +181,7 @@ export default function ConfigPage() {
               <InformationCircleIcon className="h-5 w-5 text-yellow-400" />
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  You have unsaved changes. Don't forget to save your configuration.
+                  You have unsaved changes. Don&apos;t forget to save your configuration.
                 </p>
               </div>
             </div>

@@ -2,7 +2,8 @@ import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
-import { ThemeProvider } from '../src/context/ThemeContext';
+// Using new design-system ThemeProvider (step A wiring)
+import { ThemeProvider } from '@/design-system/ThemeProvider';
 import '../src/styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
