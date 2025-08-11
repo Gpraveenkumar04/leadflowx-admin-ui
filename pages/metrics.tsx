@@ -9,6 +9,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import Layout from '../src/components/Layout';
 import { metricsAPI } from '../src/services/api';
 import { clsx } from 'clsx';
+import { useTheme } from '../src/design-system/ThemeProvider';
 
 interface MetricsPanelProps {
   title: string;
@@ -19,7 +20,7 @@ interface MetricsPanelProps {
 const MetricsPanel: React.FC<MetricsPanelProps> = ({ title, children, className }) => (
   <div className={clsx("card", className)}>
     <div className="card-header">
-      <h3 className="text-lg leading-6 font-medium text-gray-900">{title}</h3>
+      <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">{title}</h3>
     </div>
     <div className="card-body">
       {children}
@@ -44,6 +45,7 @@ interface Alert {
 }
 
 export default function MetricsPage() {
+  const { theme } = useTheme();
   const [timeRange, setTimeRange] = useState('1h');
   const [loading, setLoading] = useState(true);
   const [scrapingMetrics, setScrapingMetrics] = useState<any[]>([]);
@@ -112,30 +114,40 @@ export default function MetricsPage() {
     }
   };
 
-  const getLogLevelColor = (level: string) => {
+  const getLogLevelClass = (level: string) => {
     switch (level) {
       case 'error':
-        return 'text-red-600';
+        return 'text-[var(--color-danger-500)]';
       case 'warn':
-        return 'text-yellow-600';
+        return 'text-[var(--color-warning-500)]';
       case 'info':
-        return 'text-blue-600';
+        return 'text-[var(--color-primary-500)]';
       case 'debug':
-        return 'text-gray-500';
+        return 'text-[var(--color-text-subtle)]';
       default:
-        return 'text-gray-600';
+        return 'text-[var(--color-text-muted)]';
     }
   };
 
   const getAlertIcon = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
+        return <ExclamationTriangleIcon className="h-5 w-5 text-[var(--color-danger-500)]" />;
       case 'warning':
-        return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
+        return <ExclamationTriangleIcon className="h-5 w-5 text-[var(--color-warning-500)]" />;
       default:
-        return <ExclamationTriangleIcon className="h-5 w-5 text-blue-500" />;
+        return <ExclamationTriangleIcon className="h-5 w-5 text-[var(--color-primary-500)]" />;
     }
+  };
+
+  // Chart colors
+  const chartColors = {
+    grid: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+    tick: theme === 'dark' ? '#9ca3af' : '#4b5563',
+    primary: 'var(--color-primary-500)',
+    success: 'var(--color-success-500)',
+    warning: 'var(--color-warning-500)',
+    danger: 'var(--color-danger-500)',
   };
 
   // Mock data for charts
@@ -169,11 +181,13 @@ export default function MetricsPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="animate-pulse space-y-6">
+          <div className="h-10 bg-[var(--color-bg-subtle)] rounded w-1/3"></div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-64 bg-gray-200 rounded"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-80 bg-[var(--color-bg-subtle)] rounded"></div>
+            <div className="h-80 bg-[var(--color-bg-subtle)] rounded"></div>
+            <div className="h-80 bg-[var(--color-bg-subtle)] rounded"></div>
+            <div className="h-80 bg-[var(--color-bg-subtle)] rounded"></div>
           </div>
         </div>
       </Layout>
@@ -186,10 +200,10 @@ export default function MetricsPage() {
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
               Metrics & Monitoring
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
               System performance, alerts, and logs
             </p>
           </div>
@@ -211,7 +225,7 @@ export default function MetricsPage() {
                 autoRefresh ? "btn-primary" : "btn-secondary"
               )}
             >
-              <ArrowPathIcon className="h-4 w-4 mr-2" />
+              <ArrowPathIcon className={clsx("h-4 w-4 mr-2", autoRefresh && "animate-spin")} />
               Auto-refresh {autoRefresh ? 'On' : 'Off'}
             </button>
             <button onClick={fetchMetrics} className="btn btn-secondary btn-sm">
@@ -222,19 +236,19 @@ export default function MetricsPage() {
 
         {/* Alerts Panel */}
         {alerts.length > 0 && (
-          <div className="card border-l-4 border-red-500">
-            <div className="card-header bg-red-50">
-              <h3 className="text-lg leading-6 font-medium text-red-900">Active Alerts</h3>
+          <div className="card border-l-4 border-[var(--color-danger-500)]">
+            <div className="card-header bg-[var(--color-danger-100)]">
+              <h3 className="text-lg leading-6 font-medium text-[var(--color-danger-800)]">Active Alerts</h3>
             </div>
-            <div className="card-body bg-red-50">
+            <div className="card-body bg-[var(--color-danger-100)]">
               <div className="space-y-3">
                 {alerts.slice(0, 3).map((alert) => (
-                  <div key={alert.id} className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-sm">
+                  <div key={alert.id} className="flex items-start space-x-3 p-3 bg-[var(--color-bg-surface)] rounded-lg shadow-sm">
                     {getAlertIcon(alert.severity)}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{alert.title}</p>
-                      <p className="text-sm text-gray-500">{alert.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">{new Date(alert.timestamp).toLocaleString()}</p>
+                      <p className="text-sm font-medium text-[var(--color-text)]">{alert.title}</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">{alert.message}</p>
+                      <p className="text-xs text-[var(--color-text-subtle)] mt-1">{new Date(alert.timestamp).toLocaleString()}</p>
                     </div>
                     <button className="btn btn-sm btn-secondary">
                       Acknowledge
@@ -253,14 +267,20 @@ export default function MetricsPage() {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={scrapingChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="googleMaps" stroke="#3B82F6" strokeWidth={2} name="Google Maps" />
-                  <Line type="monotone" dataKey="linkedin" stroke="#10B981" strokeWidth={2} name="LinkedIn" />
-                  <Line type="monotone" dataKey="facebook" stroke="#F59E0B" strokeWidth={2} name="Facebook" />
-                  <Line type="monotone" dataKey="craigslist" stroke="#EF4444" strokeWidth={2} name="Craigslist" />
+                  <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="time" tick={{ fill: chartColors.tick }} />
+                  <YAxis tick={{ fill: chartColors.tick }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--color-bg-surface)', 
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text)'
+                    }} 
+                  />
+                  <Line type="monotone" dataKey="googleMaps" stroke={chartColors.primary} strokeWidth={2} name="Google Maps" dot={false} />
+                  <Line type="monotone" dataKey="linkedin" stroke={chartColors.success} strokeWidth={2} name="LinkedIn" dot={false} />
+                  <Line type="monotone" dataKey="facebook" stroke={chartColors.warning} strokeWidth={2} name="Facebook" dot={false} />
+                  <Line type="monotone" dataKey="craigslist" stroke={chartColors.danger} strokeWidth={2} name="Craigslist" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -271,12 +291,18 @@ export default function MetricsPage() {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={kafkaLagData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="consumerLag" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.3} name="Consumer Lag" />
-                  <Area type="monotone" dataKey="producerThroughput" stackId="2" stroke="#06B6D4" fill="#06B6D4" fillOpacity={0.3} name="Producer Throughput" />
+                  <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="time" tick={{ fill: chartColors.tick }} />
+                  <YAxis tick={{ fill: chartColors.tick }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--color-bg-surface)', 
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text)'
+                    }} 
+                  />
+                  <Area type="monotone" dataKey="consumerLag" stackId="1" stroke={chartColors.primary} fill={chartColors.primary} fillOpacity={0.3} name="Consumer Lag" />
+                  <Area type="monotone" dataKey="producerThroughput" stackId="2" stroke={chartColors.success} fill={chartColors.success} fillOpacity={0.3} name="Producer Throughput" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -287,12 +313,18 @@ export default function MetricsPage() {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={errorData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="4xx" fill="#F59E0B" name="4xx Errors" />
-                  <Bar dataKey="5xx" fill="#EF4444" name="5xx Errors" />
+                  <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="time" tick={{ fill: chartColors.tick }} />
+                  <YAxis tick={{ fill: chartColors.tick }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--color-bg-surface)', 
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text)'
+                    }} 
+                  />
+                  <Bar dataKey="4xx" fill={chartColors.warning} name="4xx Errors" />
+                  <Bar dataKey="5xx" fill={chartColors.danger} name="5xx Errors" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -301,21 +333,21 @@ export default function MetricsPage() {
           {/* System Health */}
           <MetricsPanel title="System Health">
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">99.9%</div>
-                <div className="text-sm text-green-600">Uptime</div>
+              <div className="text-center p-4 bg-[var(--color-success-100)] rounded-lg">
+                <div className="text-2xl font-bold text-[var(--color-success-600)]">99.9%</div>
+                <div className="text-sm text-[var(--color-success-600)]">Uptime</div>
               </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">245ms</div>
-                <div className="text-sm text-blue-600">Avg Response</div>
+              <div className="text-center p-4 bg-[var(--color-primary-100)] rounded-lg">
+                <div className="text-2xl font-bold text-[var(--color-primary-600)]">245ms</div>
+                <div className="text-sm text-[var(--color-primary-600)]">Avg Response</div>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">12/15</div>
-                <div className="text-sm text-purple-600">Active Workers</div>
+              <div className="text-center p-4 bg-[var(--color-bg-subtle)] rounded-lg">
+                <div className="text-2xl font-bold text-[var(--color-text)]">12/15</div>
+                <div className="text-sm text-[var(--color-text-muted)]">Active Workers</div>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">1.2k</div>
-                <div className="text-sm text-yellow-600">Queue Depth</div>
+              <div className="text-center p-4 bg-[var(--color-warning-100)] rounded-lg">
+                <div className="text-2xl font-bold text-[var(--color-warning-600)]">1.2k</div>
+                <div className="text-sm text-[var(--color-warning-600)]">Queue Depth</div>
               </div>
             </div>
           </MetricsPanel>
@@ -323,31 +355,31 @@ export default function MetricsPage() {
 
         {/* Logs Panel */}
         <MetricsPanel title="Recent Logs" className="col-span-full">
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="space-y-2 max-h-96 overflow-y-auto p-1">
             {logs.map((log, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg font-mono text-sm">
+              <div key={index} className="flex items-start space-x-3 p-3 bg-[var(--color-bg-subtle)] rounded-lg font-mono text-sm">
                 <div className="flex-shrink-0">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-[var(--color-text-subtle)]">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
-                <div className="flex-shrink-0">
-                  <span className={clsx("text-xs font-medium uppercase", getLogLevelColor(log.level))}>
+                <div className="flex-shrink-0 w-12 text-center">
+                  <span className={clsx("text-xs font-medium uppercase", getLogLevelClass(log.level))}>
                     {log.level}
                   </span>
                 </div>
                 <div className="flex-shrink-0">
-                  <span className="text-xs text-gray-600">[{log.service}]</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">[{log.service}]</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs text-gray-900">{log.message}</span>
+                  <span className="text-xs text-[var(--color-text)]">{log.message}</span>
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
+          <div className="mt-4 flex justify-between items-center text-sm text-[var(--color-text-muted)]">
             <span>Showing last 100 log entries</span>
-            <button className="text-primary-600 hover:text-primary-800">
+            <button className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
               View all logs →
             </button>
           </div>
@@ -357,37 +389,37 @@ export default function MetricsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="card">
             <div className="card-body text-center">
-              <ChartBarIcon className="mx-auto h-8 w-8 text-blue-500 mb-2" />
-              <div className="text-2xl font-bold text-gray-900">2,847</div>
-              <div className="text-sm text-gray-500">Total Requests</div>
-              <div className="text-xs text-green-600 mt-1">↗ +12% from yesterday</div>
+              <ChartBarIcon className="mx-auto h-8 w-8 text-[var(--color-primary-500)] mb-2" />
+              <div className="text-2xl font-bold text-[var(--color-text)]">2,847</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Total Requests</div>
+              <div className="text-xs text-[var(--color-success-500)] mt-1">↗ +12% from yesterday</div>
             </div>
           </div>
 
           <div className="card">
             <div className="card-body text-center">
-              <ClockIcon className="mx-auto h-8 w-8 text-green-500 mb-2" />
-              <div className="text-2xl font-bold text-gray-900">245ms</div>
-              <div className="text-sm text-gray-500">Avg Response Time</div>
-              <div className="text-xs text-green-600 mt-1">↗ -8% faster than average</div>
+              <ClockIcon className="mx-auto h-8 w-8 text-[var(--color-success-500)] mb-2" />
+              <div className="text-2xl font-bold text-[var(--color-text)]">245ms</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Avg Response Time</div>
+              <div className="text-xs text-[var(--color-success-500)] mt-1">↘ -8% faster than average</div>
             </div>
           </div>
 
           <div className="card">
             <div className="card-body text-center">
-              <ExclamationTriangleIcon className="mx-auto h-8 w-8 text-red-500 mb-2" />
-              <div className="text-2xl font-bold text-gray-900">3</div>
-              <div className="text-sm text-gray-500">Active Alerts</div>
-              <div className="text-xs text-red-600 mt-1">2 critical, 1 warning</div>
+              <ExclamationTriangleIcon className="mx-auto h-8 w-8 text-[var(--color-danger-500)] mb-2" />
+              <div className="text-2xl font-bold text-[var(--color-text)]">3</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Active Alerts</div>
+              <div className="text-xs text-[var(--color-danger-500)] mt-1">2 critical, 1 warning</div>
             </div>
           </div>
 
           <div className="card">
             <div className="card-body text-center">
-              <ArrowPathIcon className="mx-auto h-8 w-8 text-purple-500 mb-2" />
-              <div className="text-2xl font-bold text-gray-900">98.5%</div>
-              <div className="text-sm text-gray-500">Success Rate</div>
-              <div className="text-xs text-green-600 mt-1">↗ +0.2% improvement</div>
+              <ArrowPathIcon className="mx-auto h-8 w-8 text-[var(--color-text-subtle)] mb-2" />
+              <div className="text-2xl font-bold text-[var(--color-text)]">98.5%</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Success Rate</div>
+              <div className="text-xs text-[var(--color-success-500)] mt-1">↗ +0.2% improvement</div>
             </div>
           </div>
         </div>

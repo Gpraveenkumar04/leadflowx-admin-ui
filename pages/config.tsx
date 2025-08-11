@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  CogIcon,
   EyeIcon,
   EyeSlashIcon,
   CheckIcon,
@@ -10,7 +9,6 @@ import {
 import Layout from '../src/components/Layout';
 import { configAPI } from '../src/services/api';
 import { AppConfig } from '../src/types';
-import { clsx } from 'clsx';
 
 interface ConfigSectionProps {
   title: string;
@@ -21,8 +19,8 @@ interface ConfigSectionProps {
 const ConfigSection: React.FC<ConfigSectionProps> = ({ title, description, children }) => (
   <div className="card">
     <div className="card-header">
-      <h3 className="text-lg leading-6 font-medium text-gray-900">{title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
+      <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">{title}</h3>
+      <p className="mt-1 text-sm text-[var(--color-text-muted)]">{description}</p>
     </div>
     <div className="card-body">
       {children}
@@ -119,9 +117,10 @@ export default function ConfigPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+        <div className="animate-pulse space-y-6">
+          <div className="h-10 bg-[var(--color-bg-subtle)] rounded w-1/3"></div>
+          <div className="h-64 bg-[var(--color-bg-subtle)] rounded"></div>
+          <div className="h-48 bg-[var(--color-bg-subtle)] rounded"></div>
         </div>
       </Layout>
     );
@@ -130,8 +129,10 @@ export default function ConfigPage() {
   if (!config) {
     return (
       <Layout>
-        <div className="text-center py-12">
-          <p className="text-gray-500">Failed to load configuration</p>
+        <div className="text-center py-12 card">
+          <div className="card-body">
+            <p className="text-[var(--color-text-muted)]">Failed to load configuration</p>
+          </div>
         </div>
       </Layout>
     );
@@ -143,10 +144,10 @@ export default function ConfigPage() {
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
               Configuration
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
               Manage system settings and configurations
             </p>
           </div>
@@ -176,11 +177,11 @@ export default function ConfigPage() {
 
         {/* Unsaved Changes Banner */}
         {hasUnsavedChanges && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <div className="bg-[var(--color-warning-100)] border border-[var(--color-warning-300)] rounded-md p-4">
             <div className="flex">
-              <InformationCircleIcon className="h-5 w-5 text-yellow-400" />
+              <InformationCircleIcon className="h-5 w-5 text-[var(--color-warning-500)]" />
               <div className="ml-3">
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-[var(--color-warning-800)]">
                   You have unsaved changes. Don&apos;t forget to save your configuration.
                 </p>
               </div>
@@ -195,7 +196,7 @@ export default function ConfigPage() {
         >
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Performance Weight
               </label>
               <div className="mt-1 flex items-center space-x-4">
@@ -207,14 +208,14 @@ export default function ConfigPage() {
                   onChange={(e) => handleConfigChange('auditWeights.performance', parseInt(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm text-gray-600 min-w-12">
+                <span className="text-sm text-[var(--color-text)] min-w-12">
                   {getCurrentValue('auditWeights.performance') || 0}%
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 SEO Weight
               </label>
               <div className="mt-1 flex items-center space-x-4">
@@ -226,14 +227,14 @@ export default function ConfigPage() {
                   onChange={(e) => handleConfigChange('auditWeights.seo', parseInt(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm text-gray-600 min-w-12">
+                <span className="text-sm text-[var(--color-text)] min-w-12">
                   {getCurrentValue('auditWeights.seo') || 0}%
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 SSL Weight
               </label>
               <div className="mt-1 flex items-center space-x-4">
@@ -245,14 +246,14 @@ export default function ConfigPage() {
                   onChange={(e) => handleConfigChange('auditWeights.ssl', parseInt(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm text-gray-600 min-w-12">
+                <span className="text-sm text-[var(--color-text)] min-w-12">
                   {getCurrentValue('auditWeights.ssl') || 0}%
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Mobile Weight
               </label>
               <div className="mt-1 flex items-center space-x-4">
@@ -264,14 +265,14 @@ export default function ConfigPage() {
                   onChange={(e) => handleConfigChange('auditWeights.mobile', parseInt(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm text-gray-600 min-w-12">
+                <span className="text-sm text-[var(--color-text)] min-w-12">
                   {getCurrentValue('auditWeights.mobile') || 0}%
                 </span>
               </div>
             </div>
           </div>
-          <div className="mt-4 p-3 bg-blue-50 rounded-md">
-            <p className="text-sm text-blue-700">
+          <div className="mt-4 p-3 bg-[var(--color-primary-100)] rounded-md">
+            <p className="text-sm text-[var(--color-primary-800)]">
               Total weight: {
                 (getCurrentValue('auditWeights.performance') || 0) +
                 (getCurrentValue('auditWeights.seo') || 0) +
@@ -289,7 +290,7 @@ export default function ConfigPage() {
         >
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Site Key
               </label>
               <div className="mt-1 relative">
@@ -302,20 +303,20 @@ export default function ConfigPage() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
                   onClick={() => setShowSecrets(!showSecrets)}
                 >
                   {showSecrets ? (
-                    <EyeSlashIcon className="h-4 w-4 text-gray-400" />
+                    <EyeSlashIcon className="h-4 w-4" />
                   ) : (
-                    <EyeIcon className="h-4 w-4 text-gray-400" />
+                    <EyeIcon className="h-4 w-4" />
                   )}
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Secret Key
               </label>
               <div className="mt-1 relative">
@@ -328,13 +329,13 @@ export default function ConfigPage() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
                   onClick={() => setShowSecrets(!showSecrets)}
                 >
                   {showSecrets ? (
-                    <EyeSlashIcon className="h-4 w-4 text-gray-400" />
+                    <EyeSlashIcon className="h-4 w-4" />
                   ) : (
-                    <EyeIcon className="h-4 w-4 text-gray-400" />
+                    <EyeIcon className="h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -355,7 +356,7 @@ export default function ConfigPage() {
               className="input font-mono text-sm"
               placeholder="http://proxy1.example.com:8080&#10;http://user:pass@proxy2.example.com:8080&#10;socks5://proxy3.example.com:1080"
             />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-[var(--color-text-muted)]">
               Supported formats: HTTP, HTTPS, SOCKS4, SOCKS5. Include credentials if required.
             </p>
           </div>
@@ -368,7 +369,7 @@ export default function ConfigPage() {
         >
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Requests per Minute
               </label>
               <input
@@ -379,13 +380,13 @@ export default function ConfigPage() {
                 onChange={(e) => handleConfigChange('rateLimits.requestsPerMinute', parseInt(e.target.value) || 60)}
                 className="input mt-1"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
                 Maximum requests per minute per worker
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Burst Limit
               </label>
               <input
@@ -396,7 +397,7 @@ export default function ConfigPage() {
                 onChange={(e) => handleConfigChange('rateLimits.burstLimit', parseInt(e.target.value) || 10)}
                 className="input mt-1"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
                 Maximum burst requests before rate limiting kicks in
               </p>
             </div>
@@ -411,22 +412,21 @@ export default function ConfigPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-medium text-gray-900">Opt-in Required</h4>
-                <p className="text-sm text-gray-500">Require explicit consent before processing personal data</p>
+                <h4 className="text-sm font-medium text-[var(--color-text)]">Opt-in Required</h4>
+                <p className="text-sm text-[var(--color-text-muted)]">Require explicit consent before processing personal data</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={getCurrentValue('gdprFlags.optInRequired') || false}
                   onChange={(e) => handleConfigChange('gdprFlags.optInRequired', e.target.checked)}
-                  className="sr-only peer"
+                  className="input-toggle"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-[var(--color-text-muted)]">
                 Data Retention (Days)
               </label>
               <input
@@ -437,7 +437,7 @@ export default function ConfigPage() {
                 onChange={(e) => handleConfigChange('gdprFlags.dataRetentionDays', parseInt(e.target.value) || 365)}
                 className="input mt-1"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
                 Automatically delete leads after this many days (1-3650)
               </p>
             </div>
@@ -450,52 +450,52 @@ export default function ConfigPage() {
           description="Real-time system health and configuration status"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-[var(--color-success-100)] rounded-lg">
               <div>
-                <p className="text-sm font-medium text-green-900">Database</p>
-                <p className="text-xs text-green-600">Connected</p>
+                <p className="text-sm font-medium text-[var(--color-success-800)]">Database</p>
+                <p className="text-xs text-[var(--color-success-600)]">Connected</p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <div className="h-2 w-2 rounded-full bg-[var(--color-success-500)]"></div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-[var(--color-success-100)] rounded-lg">
               <div>
-                <p className="text-sm font-medium text-green-900">Kafka</p>
-                <p className="text-xs text-green-600">Healthy</p>
+                <p className="text-sm font-medium text-[var(--color-success-800)]">Kafka</p>
+                <p className="text-xs text-[var(--color-success-600)]">Healthy</p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <div className="h-2 w-2 rounded-full bg-[var(--color-success-500)]"></div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-[var(--color-warning-100)] rounded-lg">
               <div>
-                <p className="text-sm font-medium text-yellow-900">Prometheus</p>
-                <p className="text-xs text-yellow-600">Warning</p>
+                <p className="text-sm font-medium text-[var(--color-warning-800)]">Prometheus</p>
+                <p className="text-xs text-[var(--color-warning-600)]">Warning</p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
+              <div className="h-2 w-2 rounded-full bg-[var(--color-warning-500)]"></div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-[var(--color-primary-100)] rounded-lg">
               <div>
-                <p className="text-sm font-medium text-blue-900">Active Workers</p>
-                <p className="text-xs text-blue-600">12/15</p>
+                <p className="text-sm font-medium text-[var(--color-primary-800)]">Active Workers</p>
+                <p className="text-xs text-[var(--color-primary-600)]">12/15</p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+              <div className="h-2 w-2 rounded-full bg-[var(--color-primary-500)]"></div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-[var(--color-bg-subtle)] rounded-lg">
               <div>
-                <p className="text-sm font-medium text-purple-900">Queue Depth</p>
-                <p className="text-xs text-purple-600">1,245 items</p>
+                <p className="text-sm font-medium text-[var(--color-text)]">Queue Depth</p>
+                <p className="text-xs text-[var(--color-text-muted)]">1,245 items</p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+              <div className="h-2 w-2 rounded-full bg-[var(--color-text-subtle)]"></div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-[var(--color-bg-subtle)] rounded-lg">
               <div>
-                <p className="text-sm font-medium text-gray-900">Last Deploy</p>
-                <p className="text-xs text-gray-600">2 hours ago</p>
+                <p className="text-sm font-medium text-[var(--color-text)]">Last Deploy</p>
+                <p className="text-xs text-[var(--color-text-muted)]">2 hours ago</p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+              <div className="h-2 w-2 rounded-full bg-[var(--color-text-subtle)]"></div>
             </div>
           </div>
         </ConfigSection>

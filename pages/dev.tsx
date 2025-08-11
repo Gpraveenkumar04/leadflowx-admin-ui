@@ -232,14 +232,14 @@ export default function DevPortal() {
     }
   };
 
-  const getMethodColor = (method: string) => {
+  const getMethodClass = (method: string) => {
     switch (method) {
-      case 'GET': return 'bg-blue-100 text-blue-800';
-      case 'POST': return 'bg-green-100 text-green-800';
-      case 'PUT': return 'bg-yellow-100 text-yellow-800';
-      case 'PATCH': return 'bg-orange-100 text-orange-800';
-      case 'DELETE': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'GET': return 'badge-primary';
+      case 'POST': return 'badge-success';
+      case 'PUT': return 'badge-warning';
+      case 'PATCH': return 'badge-warning';
+      case 'DELETE': return 'badge-danger';
+      default: return 'badge-secondary';
     }
   };
 
@@ -249,23 +249,23 @@ export default function DevPortal() {
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
               Developer Portal
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
               APIs, SDKs, and documentation for LeadFlowX integration
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
-            <div className="flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full">
-              <CheckBadgeIcon className="h-4 w-4" />
-              <span className="text-sm font-medium">API Status: Healthy</span>
+            <div className="badge badge-success">
+              <CheckBadgeIcon className="h-4 w-4 mr-1" />
+              API Status: Healthy
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-[var(--color-border)]">
           <nav className="-mb-px flex space-x-8">
             {[
               { key: 'overview', label: 'Overview' },
@@ -277,10 +277,10 @@ export default function DevPortal() {
                 key={tab.key}
                 onClick={() => setSelectedTab(tab.key as any)}
                 className={clsx(
-                  'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
+                  'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors',
                   selectedTab === tab.key
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-[var(--color-primary-500)] text-[var(--color-primary-500)]'
+                    : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-hover)]'
                 )}
               >
                 {tab.label}
@@ -295,10 +295,10 @@ export default function DevPortal() {
             <div className="lg:col-span-2 space-y-6">
               <div className="card">
                 <div className="card-header">
-                  <h3 className="text-lg font-medium text-gray-900">Getting Started</h3>
+                  <h3 className="text-lg font-medium text-[var(--color-text)]">Getting Started</h3>
                 </div>
                 <div className="card-body">
-                  <div className="prose prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none text-[var(--color-text-muted)]">
                     <p>
                       Welcome to the LeadFlowX Developer Portal. This comprehensive API allows you to:
                     </p>
@@ -313,7 +313,7 @@ export default function DevPortal() {
                       All API requests require authentication using an API key. Include your API key in the 
                       <code>Authorization</code> header:
                     </p>
-                    <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
+                    <div className="bg-[var(--color-bg-subtle)] text-[var(--color-text)] p-3 rounded font-mono text-sm">
                       Authorization: Bearer your-api-key-here
                     </div>
                   </div>
@@ -322,21 +322,21 @@ export default function DevPortal() {
 
               <div className="card">
                 <div className="card-header">
-                  <h3 className="text-lg font-medium text-gray-900">Rate Limits</h3>
+                  <h3 className="text-lg font-medium text-[var(--color-text)]">Rate Limits</h3>
                 </div>
                 <div className="card-body">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">1000</div>
-                      <div className="text-sm text-blue-600">Requests/hour</div>
+                    <div className="text-center p-4 bg-[var(--color-primary-100)] rounded-lg">
+                      <div className="text-2xl font-bold text-[var(--color-primary-600)]">1000</div>
+                      <div className="text-sm text-[var(--color-primary-600)]">Requests/hour</div>
                     </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">50</div>
-                      <div className="text-sm text-green-600">Concurrent</div>
+                    <div className="text-center p-4 bg-[var(--color-success-100)] rounded-lg">
+                      <div className="text-2xl font-bold text-[var(--color-success-600)]">50</div>
+                      <div className="text-sm text-[var(--color-success-600)]">Concurrent</div>
                     </div>
-                    <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">10MB</div>
-                      <div className="text-sm text-purple-600">Max payload</div>
+                    <div className="text-center p-4 bg-[var(--color-bg-subtle)] rounded-lg">
+                      <div className="text-2xl font-bold text-[var(--color-text)]">10MB</div>
+                      <div className="text-sm text-[var(--color-text-muted)]">Max payload</div>
                     </div>
                   </div>
                 </div>
@@ -346,25 +346,25 @@ export default function DevPortal() {
             <div className="space-y-6">
               <div className="card">
                 <div className="card-header">
-                  <h3 className="text-lg font-medium text-gray-900">Quick Links</h3>
+                  <h3 className="text-lg font-medium text-[var(--color-text)]">Quick Links</h3>
                 </div>
                 <div className="card-body">
                   <div className="space-y-3">
-                    <a href="#" className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                      <span className="text-sm">OpenAPI Specification</span>
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+                    <a href="#" className="flex items-center justify-between p-2 hover:bg-[var(--color-bg-subtle)] rounded">
+                      <span className="text-sm text-[var(--color-text)]">OpenAPI Specification</span>
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[var(--color-text-subtle)]" />
                     </a>
-                    <a href="#" className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                      <span className="text-sm">Postman Collection</span>
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+                    <a href="#" className="flex items-center justify-between p-2 hover:bg-[var(--color-bg-subtle)] rounded">
+                      <span className="text-sm text-[var(--color-text)]">Postman Collection</span>
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[var(--color-text-subtle)]" />
                     </a>
-                    <a href="#" className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                      <span className="text-sm">GitHub Repository</span>
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+                    <a href="#" className="flex items-center justify-between p-2 hover:bg-[var(--color-bg-subtle)] rounded">
+                      <span className="text-sm text-[var(--color-text)]">GitHub Repository</span>
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[var(--color-text-subtle)]" />
                     </a>
-                    <a href="#" className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                      <span className="text-sm">Status Page</span>
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+                    <a href="#" className="flex items-center justify-between p-2 hover:bg-[var(--color-bg-subtle)] rounded">
+                      <span className="text-sm text-[var(--color-text)]">Status Page</span>
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[var(--color-text-subtle)]" />
                     </a>
                   </div>
                 </div>
@@ -372,26 +372,26 @@ export default function DevPortal() {
 
               <div className="card">
                 <div className="card-header">
-                  <h3 className="text-lg font-medium text-gray-900">SDKs</h3>
+                  <h3 className="text-lg font-medium text-[var(--color-text)]">SDKs</h3>
                 </div>
                 <div className="card-body">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Python SDK</span>
+                      <span className="text-sm font-medium text-[var(--color-text)]">Python SDK</span>
                       <button className="btn btn-sm btn-primary">
                         <CloudArrowDownIcon className="h-4 w-4 mr-1" />
                         Download
                       </button>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Go SDK</span>
+                      <span className="text-sm font-medium text-[var(--color-text)]">Go SDK</span>
                       <button className="btn btn-sm btn-primary">
                         <CloudArrowDownIcon className="h-4 w-4 mr-1" />
                         Download
                       </button>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Node.js SDK</span>
+                      <span className="text-sm font-medium text-[var(--color-text)]">Node.js SDK</span>
                       <button className="btn btn-sm btn-primary">
                         <CloudArrowDownIcon className="h-4 w-4 mr-1" />
                         Download
@@ -409,50 +409,47 @@ export default function DevPortal() {
           <div className="space-y-6">
             <div className="card">
               <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">API Endpoints</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <h3 className="text-lg font-medium text-[var(--color-text)]">API Endpoints</h3>
+                <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                   Complete reference for all available API endpoints
                 </p>
               </div>
               <div className="card-body">
                 <div className="space-y-4">
                   {API_ENDPOINTS.map((endpoint, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div key={index} className="border border-[var(--color-border)] rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-3">
-                          <span className={clsx(
-                            'inline-flex items-center px-2 py-1 rounded text-xs font-medium',
-                            getMethodColor(endpoint.method)
-                          )}>
+                          <span className={clsx('badge', getMethodClass(endpoint.method))}>
                             {endpoint.method}
                           </span>
-                          <code className="text-sm font-mono text-gray-900">
+                          <code className="text-sm font-mono text-[var(--color-text)]">
                             {endpoint.endpoint}
                           </code>
                         </div>
                         <button
                           onClick={() => copyToClipboard(endpoint.example || endpoint.endpoint, endpoint.endpoint)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
                           title="Copy example"
                         >
                           {copiedEndpoint === endpoint.endpoint ? (
-                            <CheckBadgeIcon className="h-4 w-4 text-green-500" />
+                            <CheckBadgeIcon className="h-4 w-4 text-[var(--color-success-500)]" />
                           ) : (
                             <ClipboardDocumentIcon className="h-4 w-4" />
                           )}
                         </button>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{endpoint.description}</p>
+                      <p className="text-sm text-[var(--color-text-muted)] mb-3">{endpoint.description}</p>
                       {endpoint.parameters && (
                         <div className="mb-3">
-                          <span className="text-xs font-medium text-gray-500">Parameters: </span>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs font-medium text-[var(--color-text-subtle)]">Parameters: </span>
+                          <span className="text-xs text-[var(--color-text-muted)]">
                             {endpoint.parameters.join(', ')}
                           </span>
                         </div>
                       )}
                       {endpoint.example && (
-                        <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto">
+                        <div className="bg-[var(--color-bg-subtle)] text-[var(--color-text)] p-3 rounded font-mono text-xs overflow-x-auto">
                           <pre>{endpoint.example}</pre>
                         </div>
                       )}
@@ -471,8 +468,8 @@ export default function DevPortal() {
               <div className="card-header">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">SDK Examples</h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <h3 className="text-lg font-medium text-[var(--color-text)]">SDK Examples</h3>
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                       Code examples for popular programming languages
                     </p>
                   </div>
@@ -482,10 +479,10 @@ export default function DevPortal() {
                         key={lang}
                         onClick={() => setSelectedSDK(lang as any)}
                         className={clsx(
-                          'px-3 py-1 text-sm font-medium rounded',
+                          'px-3 py-1 text-sm font-medium rounded transition-colors',
                           selectedSDK === lang
-                            ? 'bg-primary-100 text-primary-700'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-[var(--color-primary-500)] text-white'
+                            : 'bg-[var(--color-bg-subtle)] text-[var(--color-text)] hover:bg-[var(--color-bg-hover)]'
                         )}
                       >
                         {lang.charAt(0).toUpperCase() + lang.slice(1)}
@@ -498,12 +495,12 @@ export default function DevPortal() {
                 <div className="relative">
                   <button
                     onClick={() => copyToClipboard(SDK_EXAMPLES[selectedSDK])}
-                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 z-10"
+                    className="absolute top-2 right-2 text-[var(--color-text-subtle)] hover:text-[var(--color-text)] z-10"
                     title="Copy code"
                   >
                     <ClipboardDocumentIcon className="h-5 w-5" />
                   </button>
-                  <div className="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm overflow-x-auto">
+                  <div className="bg-[var(--color-bg-subtle)] text-[var(--color-text)] p-4 rounded font-mono text-sm overflow-x-auto">
                     <pre>{SDK_EXAMPLES[selectedSDK]}</pre>
                   </div>
                 </div>
@@ -513,25 +510,25 @@ export default function DevPortal() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="card">
                 <div className="card-header">
-                  <h4 className="text-md font-medium text-gray-900">Installation</h4>
+                  <h4 className="text-md font-medium text-[var(--color-text)]">Installation</h4>
                 </div>
                 <div className="card-body">
                   <div className="space-y-2 text-sm">
                     <div>
-                      <strong>Python:</strong>
-                      <div className="bg-gray-100 p-2 rounded font-mono text-xs mt-1">
+                      <strong className="text-[var(--color-text)]">Python:</strong>
+                      <div className="bg-[var(--color-bg-subtle)] p-2 rounded font-mono text-xs mt-1">
                         pip install leadflowx
                       </div>
                     </div>
                     <div>
-                      <strong>Go:</strong>
-                      <div className="bg-gray-100 p-2 rounded font-mono text-xs mt-1">
+                      <strong className="text-[var(--color-text)]">Go:</strong>
+                      <div className="bg-[var(--color-bg-subtle)] p-2 rounded font-mono text-xs mt-1">
                         go get github.com/leadflowx/go-sdk
                       </div>
                     </div>
                     <div>
-                      <strong>Node.js:</strong>
-                      <div className="bg-gray-100 p-2 rounded font-mono text-xs mt-1">
+                      <strong className="text-[var(--color-text)]">Node.js:</strong>
+                      <div className="bg-[var(--color-bg-subtle)] p-2 rounded font-mono text-xs mt-1">
                         npm install @leadflowx/sdk
                       </div>
                     </div>
@@ -541,17 +538,17 @@ export default function DevPortal() {
 
               <div className="card">
                 <div className="card-header">
-                  <h4 className="text-md font-medium text-gray-900">Documentation</h4>
+                  <h4 className="text-md font-medium text-[var(--color-text)]">Documentation</h4>
                 </div>
                 <div className="card-body">
                   <div className="space-y-2">
-                    <a href="#" className="block text-sm text-primary-600 hover:text-primary-800">
+                    <a href="#" className="block text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
                       Python SDK Docs →
                     </a>
-                    <a href="#" className="block text-sm text-primary-600 hover:text-primary-800">
+                    <a href="#" className="block text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
                       Go SDK Docs →
                     </a>
-                    <a href="#" className="block text-sm text-primary-600 hover:text-primary-800">
+                    <a href="#" className="block text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
                       Node.js SDK Docs →
                     </a>
                   </div>
@@ -560,17 +557,17 @@ export default function DevPortal() {
 
               <div className="card">
                 <div className="card-header">
-                  <h4 className="text-md font-medium text-gray-900">Support</h4>
+                  <h4 className="text-md font-medium text-[var(--color-text)]">Support</h4>
                 </div>
                 <div className="card-body">
                   <div className="space-y-2">
-                    <a href="#" className="block text-sm text-primary-600 hover:text-primary-800">
+                    <a href="#" className="block text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
                       GitHub Issues →
                     </a>
-                    <a href="#" className="block text-sm text-primary-600 hover:text-primary-800">
+                    <a href="#" className="block text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
                       Discord Community →
                     </a>
-                    <a href="#" className="block text-sm text-primary-600 hover:text-primary-800">
+                    <a href="#" className="block text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
                       Email Support →
                     </a>
                   </div>
@@ -585,8 +582,8 @@ export default function DevPortal() {
           <div className="space-y-6">
             <div className="card">
               <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Release Notes</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <h3 className="text-lg font-medium text-[var(--color-text)]">Release Notes</h3>
+                <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                   Latest updates and changes to the LeadFlowX API
                 </p>
               </div>
@@ -594,14 +591,14 @@ export default function DevPortal() {
                 <div className="space-y-6">
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center w-8 h-8 bg-primary-100 rounded-full">
-                        <span className="text-primary-600 text-sm font-medium">v2.1</span>
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-primary-100)] rounded-full">
+                        <span className="text-[var(--color-primary-600)] text-sm font-medium">v2.1</span>
                       </div>
                     </div>
                     <div className="ml-4">
-                      <h4 className="text-md font-medium text-gray-900">Version 2.1.0</h4>
-                      <p className="text-sm text-gray-500">Released on January 15, 2024</p>
-                      <ul className="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+                      <h4 className="text-md font-medium text-[var(--color-text)]">Version 2.1.0</h4>
+                      <p className="text-sm text-[var(--color-text-muted)]">Released on January 15, 2024</p>
+                      <ul className="mt-2 text-sm text-[var(--color-text-muted)] list-disc list-inside space-y-1">
                         <li>Added bulk operations for lead management</li>
                         <li>Improved rate limiting with burst support</li>
                         <li>New webhook endpoints for real-time notifications</li>
@@ -612,14 +609,14 @@ export default function DevPortal() {
 
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
-                        <span className="text-gray-600 text-sm font-medium">v2.0</span>
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-bg-subtle)] rounded-full">
+                        <span className="text-[var(--color-text-muted)] text-sm font-medium">v2.0</span>
                       </div>
                     </div>
                     <div className="ml-4">
-                      <h4 className="text-md font-medium text-gray-900">Version 2.0.0</h4>
-                      <p className="text-sm text-gray-500">Released on December 1, 2023</p>
-                      <ul className="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+                      <h4 className="text-md font-medium text-[var(--color-text)]">Version 2.0.0</h4>
+                      <p className="text-sm text-[var(--color-text-muted)]">Released on December 1, 2023</p>
+                      <ul className="mt-2 text-sm text-[var(--color-text-muted)] list-disc list-inside space-y-1">
                         <li>Complete API redesign with RESTful endpoints</li>
                         <li>Added authentication with API keys</li>
                         <li>New job management endpoints</li>
@@ -631,14 +628,14 @@ export default function DevPortal() {
 
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
-                        <span className="text-gray-600 text-sm font-medium">v1.5</span>
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-bg-subtle)] rounded-full">
+                        <span className="text-[var(--color-text-muted)] text-sm font-medium">v1.5</span>
                       </div>
                     </div>
                     <div className="ml-4">
-                      <h4 className="text-md font-medium text-gray-900">Version 1.5.2</h4>
-                      <p className="text-sm text-gray-500">Released on October 20, 2023</p>
-                      <ul className="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+                      <h4 className="text-md font-medium text-[var(--color-text)]">Version 1.5.2</h4>
+                      <p className="text-sm text-[var(--color-text-muted)]">Released on October 20, 2023</p>
+                      <ul className="mt-2 text-sm text-[var(--color-text-muted)] list-disc list-inside space-y-1">
                         <li>Fixed pagination issues in lead endpoints</li>
                         <li>Improved QA workflow status updates</li>
                         <li>Performance optimizations for large datasets</li>

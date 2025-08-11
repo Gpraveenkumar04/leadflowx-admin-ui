@@ -16,6 +16,7 @@ import Layout from '../src/components/Layout';
 import { jobsAPI } from '../src/services/api';
 import { ScrapingJob, JobStatus, DataSource, DATA_SOURCES } from '../src/types';
 import { clsx } from 'clsx';
+import { useTheme } from '../src/design-system/ThemeProvider';
 
 interface JobFormData {
   name: string;
@@ -76,99 +77,100 @@ const JobForm: React.FC<JobFormProps> = ({ isOpen, onClose, onSubmit, initialDat
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
+      <div className="flex min-h-screen items-center justify-center p-4 text-center">
+        <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} aria-hidden="true"></div>
 
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {initialData ? 'Edit Job' : 'Create New Job'}
-            </h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+        <div className="relative inline-block w-full max-w-lg transform text-left align-middle transition-all">
+          <div className="card">
+            <div className="card-header flex items-center justify-between">
+              <h3 className="text-lg font-medium text-[var(--color-text)]">
+                {initialData ? 'Edit Job' : 'Create New Job'}
+              </h3>
+              <button onClick={onClose} className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)] transition-colors">
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="card-body space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Job Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="input mt-1"
+                  placeholder="e.g., NYC Restaurants Scraper"
+                />
+                {errors.name && <p className="mt-1 text-sm text-[var(--color-danger-500)]">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Data Source</label>
+                <select
+                  value={formData.source}
+                  onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value as DataSource }))}
+                  className="select mt-1"
+                >
+                  {DATA_SOURCES.map(source => (
+                    <option key={source} value={source}>
+                      {source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Filters (JSON)</label>
+                <textarea
+                  value={formData.filters}
+                  onChange={(e) => setFormData(prev => ({ ...prev, filters: e.target.value }))}
+                  rows={6}
+                  className="input mt-1 font-mono text-sm"
+                  placeholder='{"category": "restaurant", "location": "New York"}'
+                />
+                {errors.filters && <p className="mt-1 text-sm text-[var(--color-danger-500)]">{errors.filters}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Cron Schedule</label>
+                <input
+                  type="text"
+                  value={formData.cron}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cron: e.target.value }))}
+                  className="input mt-1 font-mono"
+                  placeholder="0 */2 * * *"
+                />
+                <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
+                  Current: Every 2 hours. Use{' '}
+                  <a href="https://crontab.guru" target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary-500)] hover:underline">
+                    crontab.guru
+                  </a>{' '}
+                  to help build your schedule.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Concurrency</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={formData.concurrency}
+                  onChange={(e) => setFormData(prev => ({ ...prev, concurrency: parseInt(e.target.value) || 1 }))}
+                  className="input mt-1"
+                />
+                {errors.concurrency && <p className="mt-1 text-sm text-[var(--color-danger-500)]">{errors.concurrency}</p>}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button type="button" onClick={onClose} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {initialData ? 'Update Job' : 'Create Job'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Job Name</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="input mt-1"
-                placeholder="e.g., NYC Restaurants Scraper"
-              />
-              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Data Source</label>
-              <select
-                value={formData.source}
-                onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value as DataSource }))}
-                className="select mt-1"
-              >
-                {DATA_SOURCES.map(source => (
-                  <option key={source} value={source}>
-                    {source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Filters (JSON)</label>
-              <textarea
-                value={formData.filters}
-                onChange={(e) => setFormData(prev => ({ ...prev, filters: e.target.value }))}
-                rows={6}
-                className="input mt-1 font-mono text-sm"
-                placeholder='{"category": "restaurant", "location": "New York"}'
-              />
-              {errors.filters && <p className="mt-1 text-sm text-red-600">{errors.filters}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Cron Schedule</label>
-              <input
-                type="text"
-                value={formData.cron}
-                onChange={(e) => setFormData(prev => ({ ...prev, cron: e.target.value }))}
-                className="input mt-1 font-mono"
-                placeholder="0 */2 * * *"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Current: Every 2 hours. Use{' '}
-                <a href="https://crontab.guru" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-800">
-                  crontab.guru
-                </a>{' '}
-                to help build your schedule.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Concurrency</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={formData.concurrency}
-                onChange={(e) => setFormData(prev => ({ ...prev, concurrency: parseInt(e.target.value) || 1 }))}
-                className="input mt-1"
-              />
-              {errors.concurrency && <p className="mt-1 text-sm text-red-600">{errors.concurrency}</p>}
-            </div>
-
-            <div className="flex justify-end space-x-3 pt-4">
-              <button type="button" onClick={onClose} className="btn btn-secondary">
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary">
-                {initialData ? 'Update Job' : 'Create Job'}
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     </div>
@@ -185,6 +187,7 @@ interface LogViewerProps {
 const LogViewer: React.FC<LogViewerProps> = ({ isOpen, onClose, jobId, jobName }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (isOpen) {
@@ -210,35 +213,36 @@ const LogViewer: React.FC<LogViewerProps> = ({ isOpen, onClose, jobId, jobName }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
+      <div className="flex min-h-screen items-center justify-center p-4 text-center">
+        <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} aria-hidden="true"></div>
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
+        <div className="relative inline-block w-full max-w-4xl transform text-left align-middle transition-all">
+          <div className="card">
+            <div className="card-header flex items-center justify-between">
+              <h3 className="text-lg font-medium text-[var(--color-text)]">
                 Logs - {jobName}
               </h3>
               <div className="flex items-center space-x-2">
                 {loading && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
                 )}
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                <button onClick={onClose} className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)] transition-colors">
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
             </div>
-
-            <div className="bg-gray-900 text-green-400 font-mono text-sm p-4 rounded-lg max-h-96 overflow-y-auto">
-              {logs.length === 0 ? (
-                <div className="text-gray-400">No logs available</div>
-              ) : (
-                logs.map((log, index) => (
-                  <div key={index} className="whitespace-pre-wrap break-words">
-                    {log}
-                  </div>
-                ))
-              )}
+            <div className="card-body">
+              <div className="bg-[var(--color-bg-inset)] text-[var(--color-text-muted)] font-mono text-sm p-4 rounded-lg max-h-[60vh] overflow-y-auto">
+                {logs.length === 0 ? (
+                  <div className="text-center py-4">No logs available</div>
+                ) : (
+                  logs.map((log, index) => (
+                    <div key={index} className="whitespace-pre-wrap break-words">
+                      {log}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -333,7 +337,7 @@ export default function JobsPage() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm('Are you sure you want to delete this job?')) return;
+    if (!confirm('Are you sure you want to delete this job? This action cannot be undone.')) return;
     
     try {
       await jobsAPI.deleteJob(jobId);
@@ -358,15 +362,15 @@ export default function JobsPage() {
   const getStatusBadge = (status: JobStatus) => {
     switch (status) {
       case 'running':
-        return <span className="badge bg-green-100 text-green-800 animate-pulse">Running</span>;
+        return <span className="badge badge-success animate-pulse">Running</span>;
       case 'paused':
-        return <span className="badge bg-yellow-100 text-yellow-800">Paused</span>;
+        return <span className="badge badge-warning">Paused</span>;
       case 'failed':
-        return <span className="badge bg-red-100 text-red-800">Failed</span>;
+        return <span className="badge badge-danger">Failed</span>;
       case 'completed':
-        return <span className="badge bg-blue-100 text-blue-800">Completed</span>;
+        return <span className="badge badge-primary">Completed</span>;
       default:
-        return <span className="badge bg-gray-100 text-gray-800">Unknown</span>;
+        return <span className="badge badge-secondary">Unknown</span>;
     }
   };
 
@@ -374,8 +378,12 @@ export default function JobsPage() {
     return (
       <Layout>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-[var(--color-bg-subtle)] rounded w-1/4"></div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-64 bg-[var(--color-bg-subtle)] rounded-lg"></div>
+            ))}
+          </div>
         </div>
       </Layout>
     );
@@ -383,20 +391,20 @@ export default function JobsPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
               Scraping Jobs
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
               Manage and monitor your scraping workflows
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
             <button
-              onClick={() => setShowJobForm(true)}
+              onClick={() => { setEditingJob(null); setShowJobForm(true); }}
               className="btn btn-primary"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
@@ -408,16 +416,16 @@ export default function JobsPage() {
         {/* Jobs Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {jobs.map((job) => (
-            <div key={job.id} className="card">
-              <div className="card-body">
+            <div key={job.id} className="card flex flex-col">
+              <div className="card-body flex-grow">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-medium text-gray-900 truncate">{job.name}</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Source: <span className="font-medium">{job.source.replace(/_/g, ' ')}</span>
+                    <h3 className="text-lg font-medium text-[var(--color-text)] truncate">{job.name}</h3>
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                      Source: <span className="font-medium text-[var(--color-text)]">{job.source.replace(/_/g, ' ')}</span>
                     </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Schedule: <span className="font-mono text-xs">{job.cron}</span>
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                      Schedule: <span className="font-mono text-xs text-[var(--color-text)] bg-[var(--color-bg-subtle)] px-1 py-0.5 rounded">{job.cron}</span>
                     </p>
                   </div>
                   <div className="ml-4 flex-shrink-0">
@@ -426,16 +434,17 @@ export default function JobsPage() {
                 </div>
 
                 <div className="mt-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <ClockIcon className="h-4 w-4 mr-1" />
+                  <div className="flex items-center text-sm text-[var(--color-text-muted)]">
+                    <ClockIcon className="h-4 w-4 mr-1.5" />
                     <span>Concurrency: {job.concurrency}</span>
                   </div>
-                  <div className="mt-2 text-sm text-gray-500">
+                  <div className="mt-2 text-sm text-[var(--color-text-muted)]">
                     Last updated: {new Date(job.updatedAt).toLocaleString()}
                   </div>
                 </div>
+              </div>
 
-                <div className="mt-6 flex justify-between">
+              <div className="card-footer bg-[var(--color-bg-subtle)] flex justify-between items-center">
                   <div className="flex space-x-2">
                     {job.status === 'running' ? (
                       <>
@@ -474,7 +483,7 @@ export default function JobsPage() {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => setEditingJob(job)}
+                      onClick={() => { setEditingJob(job); setShowJobForm(true); }}
                       className="btn btn-secondary btn-sm"
                       title="Edit job"
                     >
@@ -495,32 +504,33 @@ export default function JobsPage() {
                       <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {jobs.length === 0 && (
-          <div className="text-center py-12">
-            <BriefcaseIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No jobs</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new scraping job.</p>
-            <div className="mt-6">
-              <button
-                onClick={() => setShowJobForm(true)}
-                className="btn btn-primary"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Create New Job
-              </button>
+        {jobs.length === 0 && !loading && (
+          <div className="text-center py-12 card">
+            <div className="card-body">
+              <BriefcaseIcon className="mx-auto h-12 w-12 text-[var(--color-text-subtle)]" />
+              <h3 className="mt-2 text-sm font-medium text-[var(--color-text)]">No jobs found</h3>
+              <p className="mt-1 text-sm text-[var(--color-text-muted)]">Get started by creating a new scraping job.</p>
+              <div className="mt-6">
+                <button
+                  onClick={() => { setEditingJob(null); setShowJobForm(true); }}
+                  className="btn btn-primary"
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Create New Job
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Job Form Modal */}
         <JobForm
-          isOpen={showJobForm || editingJob !== null}
+          isOpen={showJobForm}
           onClose={() => {
             setShowJobForm(false);
             setEditingJob(null);
