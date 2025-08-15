@@ -12,6 +12,8 @@ interface MetricCardProps {
   };
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   intent?: MetricIntent;
+  // optional tailwind color class passed by tests or callers (e.g. 'bg-blue-500')
+  color?: string;
 }
 
 const intentStyles: Record<MetricIntent, { bg: string }> = {
@@ -22,15 +24,16 @@ const intentStyles: Record<MetricIntent, { bg: string }> = {
   secondary: { bg: 'bg-[var(--color-text-muted)]' },
 };
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon: Icon, intent = 'secondary' }) => {
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon: Icon, intent = 'secondary', color }) => {
   const styles = intentStyles[intent];
+  const bgClass = color ? color : styles.bg;
 
   return (
     <div className="card">
       <div className="card-body">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <div className={`p-3 rounded-lg ${styles.bg}`}>
+            <div className={`p-3 rounded-lg ${bgClass}`}>
               <Icon className="h-6 w-6 text-white" />
             </div>
           </div>

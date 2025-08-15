@@ -52,11 +52,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
     audit: true,
     saving: false
   });
-  const [availableUsers, setAvailableUsers] = useState<User[]>([
-    { id: '1', name: 'John Doe', role: 'admin', email: 'john@example.com' },
-    { id: '2', name: 'Jane Smith', role: 'qa_rep', email: 'jane@example.com' },
-    { id: '3', name: 'Alex Brown', role: 'sdr', email: 'alex@example.com' },
-  ]);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Lead['workflowStatus']>(lead.workflowStatus || 'pending');
 
   // Memoize available users to prevent unnecessary re-renders
@@ -74,41 +70,38 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
   }, [lead.leadScore]);
 
   useEffect(() => {
-    // In a real implementation, we would fetch these from API
     fetchComments();
     fetchAuditTrail();
+    // Best-effort fetch of users for mentions/assignment; falls back to empty
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/users`);
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableUsers(Array.isArray(data?.data) ? data.data : []);
+        }
+      } catch {}
+    })();
   }, [lead.id]);
 
   const fetchComments = async () => {
     setLoading(prev => ({ ...prev, comments: true }));
     try {
-      // In a real implementation:
-      // const response = await leadsAPI.getComments(lead.id);
-      // setComments(response.data || []);
-
-      // Mock data for demonstration
-      setTimeout(() => {
-        setComments([
-          {
-            id: '1',
-            text: 'This lead looks promising. @Jane Smith can you follow up?',
-            userId: '1',
-            userName: 'John Doe',
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            mentions: ['2']
-          },
-          {
-            id: '2',
-            text: 'Sure, I\'ll reach out tomorrow morning.',
-            userId: '2',
-            userName: 'Jane Smith',
-            timestamp: new Date(Date.now() - 1800000).toISOString()
-          }
-        ]);
-        setLoading(prev => ({ ...prev, comments: false }));
-      }, 500);
+      const data = await leadsAPI.getComments(lead.id);
+      // Map API comment shape if needed
+      const mapped = (data || []).map(c => ({
+        id: (c as any).id || `${(c as any).timestamp || Date.now()}`,
+        text: (c as any).text || (c as any).content || '',
+        userId: (c as any).author?.id || (c as any).userId || '',
+        userName: (c as any).author?.name || (c as any).userName || 'User',
+        timestamp: (c as any).timestamp || (c as any).createdAt || new Date().toISOString(),
+        mentions: (c as any).mentions || [],
+        userAvatar: (c as any).author?.avatar,
+      }));
+      setComments(mapped);
     } catch (error) {
       console.error('Error fetching comments:', error);
+    } finally {
       setLoading(prev => ({ ...prev, comments: false }));
     }
   };
@@ -116,76 +109,31 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
   const fetchAuditTrail = async () => {
     setLoading(prev => ({ ...prev, audit: true }));
     try {
-      // In a real implementation:
-      // const response = await leadsAPI.getAuditTrail(lead.id, 'lead');
-      // setAuditEvents(response.data || []);
-      
-      // Mock data for demonstration
-      setTimeout(() => {
-        setAuditEvents([
-          {
-            id: '1',
-            eventType: 'create',
-            entityId: lead.id,
-            entityType: 'lead',
-            userId: '3',
-            userName: 'System',
-            timestamp: new Date(Date.now() - 86400000).toISOString()
-          },
-          {
-            id: '2',
-            eventType: 'update',
-            entityId: lead.id,
-            entityType: 'lead',
-            userId: '1',
-            userName: 'John Doe',
-            timestamp: new Date(Date.now() - 43200000).toISOString(),
-            changes: [
-              {
-                field: 'email',
-                oldValue: 'old@example.com',
-                newValue: lead.email
-              }
-            ]
-          },
-          {
-            id: '3',
-            eventType: 'tag',
-            entityId: lead.id,
-            entityType: 'lead',
-            userId: '2',
-            userName: 'Jane Smith',
-            timestamp: new Date(Date.now() - 21600000).toISOString(),
-            metadata: {
-              added: 'Hot Lead'
-            }
-          }
-        ]);
-        setLoading(prev => ({ ...prev, audit: false }));
-      }, 700);
+      const data = await leadsAPI.getAuditTrail(lead.id);
+      const mapped = (data || []).map((e: any) => ({
+        id: e.id || `${e.timestamp || Date.now()}`,
+        eventType: e.action || e.eventType || 'update',
+        entityId: lead.id,
+        entityType: 'lead' as const,
+        userId: e.user?.id || e.userId || '',
+        userName: e.user?.name || e.userName || 'User',
+        userAvatar: e.user?.avatar,
+        timestamp: e.timestamp || e.createdAt || new Date().toISOString(),
+        changes: e.changes || e.diff || undefined,
+        metadata: e.metadata || undefined,
+      }));
+      setAuditEvents(mapped);
     } catch (error) {
       console.error('Error fetching audit trail:', error);
+    } finally {
       setLoading(prev => ({ ...prev, audit: false }));
     }
   };
 
   const handleAddComment = useCallback(async (text: string, mentions: string[]) => {
     try {
-      // In a real implementation:
-      // await leadsAPI.addComment(lead.id, 'lead', text, mentions);
-      // await fetchComments();
-      
-      // Mock data for demonstration
-      const newComment: Comment = {
-        id: `temp-${Date.now()}`,
-        text,
-        userId: '1', // Current user
-        userName: 'Current User',
-        timestamp: new Date().toISOString(),
-        mentions
-      };
-      
-      setComments(prev => [...prev, newComment]);
+      await leadsAPI.addComment(lead.id, text, mentions);
+      await fetchComments();
     } catch (error) {
       console.error('Error adding comment:', error);
     }
@@ -193,16 +141,12 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
 
   const handleDeleteComment = useCallback(async (commentId: string) => {
     try {
-      // In a real implementation:
-      // await leadsAPI.deleteComment(commentId);
-      // await fetchComments();
-      
-      // Mock data for demonstration
-      setComments(prev => prev.filter(comment => comment.id !== commentId));
+      await leadsAPI.deleteComment(lead.id, commentId);
+      await fetchComments();
     } catch (error) {
       console.error('Error deleting comment:', error);
     }
-  }, []);
+  }, [lead.id]);
 
   const startEditing = () => {
     setFormData({ ...lead });
@@ -360,7 +304,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
               <div className="flex items-center text-sm text-gray-500 mt-1">
                 <span className="flex items-center mr-3">
                   <MapPinIcon className="h-3 w-3 mr-1" aria-hidden="true" />
-                  {lead.source || 'Unknown source'}
+                  {lead.source || t('lead.unknown_source')}
                 </span>
                 
                 {lead.scrapedAt && (
@@ -851,7 +795,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
                     formData.qaStatus === 'approved' || lead.qaStatus === 'approved' ? "text-green-500" : "text-gray-300"
                   )} 
                   aria-hidden="true" />
-                  <span className="font-medium">Approved</span>
+                    <span className="font-medium">{t('lead.qa.approved') || 'Approved'}</span>
                 </button>
                 
                 <button
@@ -874,7 +818,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
                     formData.qaStatus === 'rejected' || lead.qaStatus === 'rejected' ? "text-red-500" : "text-gray-300"
                   )} 
                   aria-hidden="true" />
-                  <span className="font-medium">Rejected</span>
+                  <span className="font-medium">{t('lead.qa.rejected') || 'Rejected'}</span>
                 </button>
                 
                 <button
@@ -897,15 +841,15 @@ const LeadDetail: React.FC<LeadDetailProps> = ({
                     formData.qaStatus === 'needs_review' || lead.qaStatus === 'needs_review' ? "text-yellow-500" : "text-gray-300"
                   )} 
                   aria-hidden="true" />
-                  <span className="font-medium">Needs Review</span>
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Score Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="card bg-white shadow-sm rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md">
+                  <span className="font-medium">{t('lead.qa.needs_review') || 'Needs Review'}</span>
+                <button
+              onClick={startEditing}
+              className="btn btn-primary btn-sm flex items-center gap-1"
+              aria-label={t('lead.edit')}
+            >
+              <PencilIcon className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{t('lead.edit') || 'Edit'}</span>
+            </button>
               <div className="card-body p-4">
                 <h3 className="text-sm font-medium text-gray-600 mb-1" id="audit-score-label">
                   Audit Score

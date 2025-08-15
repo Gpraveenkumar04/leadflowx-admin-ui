@@ -11,22 +11,7 @@ import { metricsAPI } from '../src/services/api';
 import { clsx } from 'clsx';
 import { useTheme } from '../src/design-system/ThemeProvider';
 
-interface MetricsPanelProps {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-}
-
-const MetricsPanel: React.FC<MetricsPanelProps> = ({ title, children, className }) => (
-  <div className={clsx("card", className)}>
-    <div className="card-header">
-      <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">{title}</h3>
-    </div>
-    <div className="card-body">
-      {children}
-    </div>
-  </div>
-);
+import MetricsPanel from '../components/ui/MetricsPanel';
 
 interface LogEntry {
   timestamp: string;
@@ -74,38 +59,11 @@ export default function MetricsPage() {
         metricsAPI.getAlerts()
       ]);
       
-      setScrapingMetrics(scrapingData);
-      setKafkaMetrics(kafkaData);
-      setErrorMetrics(errorData);
-      setAlerts(alertsData);
-      
-      // Mock log data - in real implementation, this would come from your logging service
-      setLogs([
-        {
-          timestamp: new Date().toISOString(),
-          level: 'info',
-          service: 'scraper-google-maps',
-          message: 'Successfully scraped 25 leads from NYC restaurants'
-        },
-        {
-          timestamp: new Date(Date.now() - 60000).toISOString(),
-          level: 'warn',
-          service: 'auditor',
-          message: 'SSL check timeout for example.com (timeout after 10s)'
-        },
-        {
-          timestamp: new Date(Date.now() - 120000).toISOString(),
-          level: 'error',
-          service: 'scorer',
-          message: 'Failed to connect to external scoring API'
-        },
-        {
-          timestamp: new Date(Date.now() - 180000).toISOString(),
-          level: 'info',
-          service: 'ingestion-api',
-          message: 'Processed 150 leads from Kafka topic'
-        }
-      ]);
+  setScrapingMetrics(scrapingData);
+  setKafkaMetrics(kafkaData);
+  setErrorMetrics(errorData);
+  setAlerts(alertsData);
+  setLogs([]);
       
     } catch (error) {
       console.error('Failed to fetch metrics:', error);
@@ -150,33 +108,16 @@ export default function MetricsPage() {
     danger: 'var(--color-danger-500)',
   };
 
-  // Mock data for charts
-  const scrapingChartData = [
-    { time: '00:00', googleMaps: 45, linkedin: 32, facebook: 28, craigslist: 15 },
-    { time: '04:00', googleMaps: 52, linkedin: 38, facebook: 35, craigslist: 22 },
-    { time: '08:00', googleMaps: 68, linkedin: 45, facebook: 42, craigslist: 30 },
-    { time: '12:00', googleMaps: 75, linkedin: 52, facebook: 48, craigslist: 35 },
-    { time: '16:00', googleMaps: 82, linkedin: 58, facebook: 55, craigslist: 42 },
-    { time: '20:00', googleMaps: 65, linkedin: 42, facebook: 38, craigslist: 28 }
-  ];
-
-  const kafkaLagData = [
-    { time: '00:00', consumerLag: 120, producerThroughput: 850 },
-    { time: '04:00', consumerLag: 95, producerThroughput: 920 },
-    { time: '08:00', consumerLag: 150, producerThroughput: 1200 },
-    { time: '12:00', consumerLag: 180, producerThroughput: 1450 },
-    { time: '16:00', consumerLag: 220, producerThroughput: 1600 },
-    { time: '20:00', consumerLag: 160, producerThroughput: 1100 }
-  ];
-
-  const errorData = [
-    { time: '00:00', '4xx': 12, '5xx': 3 },
-    { time: '04:00', '4xx': 8, '5xx': 2 },
-    { time: '08:00', '4xx': 15, '5xx': 5 },
-    { time: '12:00', '4xx': 22, '5xx': 8 },
-    { time: '16:00', '4xx': 18, '5xx': 6 },
-    { time: '20:00', '4xx': 10, '5xx': 2 }
-  ];
+  // No mock chart data; use backend-provided series if available
+  const scrapingChartData = Array.isArray(scrapingMetrics)
+    ? scrapingMetrics
+    : (scrapingMetrics as any)?.timeseries || [];
+  const kafkaLagData = Array.isArray(kafkaMetrics)
+    ? kafkaMetrics
+    : (kafkaMetrics as any)?.timeseries || [];
+  const errorData = Array.isArray(errorMetrics)
+    ? errorMetrics
+    : (errorMetrics as any)?.timeseries || [];
 
   if (loading) {
     return (
@@ -356,7 +297,9 @@ export default function MetricsPage() {
         {/* Logs Panel */}
         <MetricsPanel title="Recent Logs" className="col-span-full">
           <div className="space-y-2 max-h-96 overflow-y-auto p-1">
-            {logs.map((log, index) => (
+            {logs.length === 0 ? (
+              <div className="text-sm text-[var(--color-text-muted)] p-2">No logs available</div>
+            ) : logs.map((log, index) => (
               <div key={index} className="flex items-start space-x-3 p-3 bg-[var(--color-bg-subtle)] rounded-lg font-mono text-sm">
                 <div className="flex-shrink-0">
                   <span className="text-xs text-[var(--color-text-subtle)]">
@@ -377,12 +320,14 @@ export default function MetricsPage() {
               </div>
             ))}
           </div>
-          <div className="mt-4 flex justify-between items-center text-sm text-[var(--color-text-muted)]">
-            <span>Showing last 100 log entries</span>
-            <button className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
-              View all logs →
-            </button>
-          </div>
+          {logs.length > 0 && (
+            <div className="mt-4 flex justify-between items-center text-sm text-[var(--color-text-muted)]">
+              <span>Showing last {logs.length} log entries</span>
+              <button className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
+                View all logs →
+              </button>
+            </div>
+          )}
         </MetricsPanel>
 
         {/* Quick Stats */}

@@ -21,18 +21,28 @@ const UserAssignment: React.FC<UserAssignmentProps> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Mock users data - in a real app, you would fetch this from your API
+  
+  // Load users from API; show empty-state if unavailable
   useEffect(() => {
-    const mockUsers: User[] = [
-      { id: '1', name: 'John Doe', email: 'john@example.com', role: 'admin', avatar: 'https://i.pravatar.cc/150?u=1' },
-      { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'qa_rep', avatar: 'https://i.pravatar.cc/150?u=2' },
-      { id: '3', name: 'Mike Johnson', email: 'mike@example.com', role: 'sdr', avatar: 'https://i.pravatar.cc/150?u=3' },
-      { id: '4', name: 'Sarah Wilson', email: 'sarah@example.com', role: 'viewer', avatar: 'https://i.pravatar.cc/150?u=4' },
-      { id: '5', name: 'David Brown', email: 'david@example.com', role: 'sdr', avatar: 'https://i.pravatar.cc/150?u=5' },
-    ];
-    
-    setUsers(mockUsers);
+    let ignore = false;
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/users`, {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Failed to fetch users');
+        const data = await res.json();
+        if (!ignore) setUsers(Array.isArray(data?.data) ? data.data : []);
+      } catch {
+        if (!ignore) setUsers([]);
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    };
+    load();
+    return () => { ignore = true; };
   }, []);
 
   const handleAssign = (userId: string) => {

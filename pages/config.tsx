@@ -7,26 +7,11 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
+import ConfigSection from '../components/ui/ConfigSection';
 import { configAPI } from '../src/services/api';
 import { AppConfig } from '../src/types';
 
-interface ConfigSectionProps {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}
-
-const ConfigSection: React.FC<ConfigSectionProps> = ({ title, description, children }) => (
-  <div className="card">
-    <div className="card-header">
-      <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">{title}</h3>
-      <p className="mt-1 text-sm text-[var(--color-text-muted)]">{description}</p>
-    </div>
-    <div className="card-body">
-      {children}
-    </div>
-  </div>
-);
+// ...existing code
 
 export default function ConfigPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);

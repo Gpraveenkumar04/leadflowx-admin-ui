@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ThemeProvider } from '@/design-system/ThemeProvider';
+import { AuthProvider } from '../context/AuthContext';
 import ThemedToaster from '@/components/ThemedToaster';
 import '../src/styles/globals.css';
 
@@ -17,8 +18,10 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <Component {...pageProps} />
-        <ThemedToaster />
+        <AuthProvider>
+          <Component {...pageProps} />
+          <ThemedToaster />
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

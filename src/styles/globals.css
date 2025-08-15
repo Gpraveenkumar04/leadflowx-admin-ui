@@ -93,6 +93,24 @@
   --line-height-default: 1.4;
 }
 
+  /* Convenience semantic aliases used across the app (keeps components stable while tokens evolve) */
+  --color-bg-elevated: var(--color-bg-surface);
+  --color-border-subtle: var(--color-border);
+  --color-border-soft: var(--color-border-strong);
+  --color-text-primary: var(--color-text);
+  --color-text-secondary: var(--color-text-muted);
+  --color-accent-600: var(--color-primary-600);
+  --color-accent-500: var(--color-primary-500);
+  --color-accent-text-contrast: #ffffff;
+  --color-bg-muted: var(--color-bg-subtle);
+  --color-bg-hover: #f3f4f6;
+  --color-bg-accent-subtle: var(--color-primary-50);
+  --color-bg-accent-muted: var(--color-primary-100);
+  --color-bg-accent: var(--color-primary-500);
+  --color-status-error: var(--color-danger-600);
+  --color-status-error-bg: var(--color-danger-50);
+  --toolbar-bg-translucent: rgba(255,255,255,0.6);
+
 /* Dark theme overrides */
 .dark:root, .dark {
   --color-bg-app: #0f172a; /* slate-900 */
@@ -294,4 +312,24 @@
   .lfx-container { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
   .truncate-1 { @apply overflow-hidden text-ellipsis whitespace-nowrap; }
   .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Radius utilities mapped to design tokens (use these instead of Tailwind's rounded-*) */
+  .radius-xs { border-radius: var(--radius-xs); }
+  .radius-sm { border-radius: var(--radius-sm); }
+  .radius-md { border-radius: var(--radius-md); }
+  .radius-lg { border-radius: var(--radius-lg); }
+  .radius-xl { border-radius: var(--radius-xl); }
+  .radius-full { border-radius: var(--radius-full); }
+  .loader {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    border: 4px solid rgba(0,0,0,0.08);
+    border-top-color: var(--color-accent-500);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 }

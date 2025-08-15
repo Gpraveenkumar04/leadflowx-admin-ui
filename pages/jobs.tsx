@@ -14,242 +14,21 @@ import {
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
 import { jobsAPI } from '../src/services/api';
-import { ScrapingJob, JobStatus, DataSource, DATA_SOURCES } from '../src/types';
+import { ScrapingJob, JobStatus, DataSource } from '../src/types';
 import { clsx } from 'clsx';
-import { useTheme } from '../src/design-system/ThemeProvider';
+import JobForm from '../components/jobs/JobForm';
+import LogViewer from '../components/jobs/LogViewer';
+import Badge from '../src/components/ui/Badge';
+import { t } from '../src/i18n';
 
-interface JobFormData {
+type JobFormData = {
   name: string;
-  source: DataSource;
+  source: string;
   filters: string;
   cron: string;
   concurrency: number;
-}
-
-interface JobFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: JobFormData) => void;
-  initialData?: Partial<JobFormData>;
-}
-
-const JobForm: React.FC<JobFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState<JobFormData>({
-    name: initialData?.name || '',
-    source: initialData?.source || 'google_maps',
-    filters: initialData?.filters || '{\n  "category": "restaurant",\n  "location": "New York",\n  "radius": 5000\n}',
-    cron: initialData?.cron || '0 */2 * * *',
-    concurrency: initialData?.concurrency || 5
-  });
-
-  const [errors, setErrors] = useState<Partial<Record<keyof JobFormData, string>>>({});
-
-  const validateForm = () => {
-  const newErrors: Partial<Record<keyof JobFormData, string>> = {};
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    
-    try {
-      JSON.parse(formData.filters);
-    } catch (e) {
-      newErrors.filters = 'Invalid JSON format';
-    }
-    
-    if (formData.concurrency < 1 || formData.concurrency > 20) {
-      newErrors.concurrency = 'Concurrency must be between 1 and 20';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 text-center">
-        <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} aria-hidden="true"></div>
-
-        <div className="relative inline-block w-full max-w-lg transform text-left align-middle transition-all">
-          <div className="card">
-            <div className="card-header flex items-center justify-between">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">
-                {initialData ? 'Edit Job' : 'Create New Job'}
-              </h3>
-              <button onClick={onClose} className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)] transition-colors">
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="card-body space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Job Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="input mt-1"
-                  placeholder="e.g., NYC Restaurants Scraper"
-                />
-                {errors.name && <p className="mt-1 text-sm text-[var(--color-danger-500)]">{errors.name}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Data Source</label>
-                <select
-                  value={formData.source}
-                  onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value as DataSource }))}
-                  className="select mt-1"
-                >
-                  {DATA_SOURCES.map(source => (
-                    <option key={source} value={source}>
-                      {source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Filters (JSON)</label>
-                <textarea
-                  value={formData.filters}
-                  onChange={(e) => setFormData(prev => ({ ...prev, filters: e.target.value }))}
-                  rows={6}
-                  className="input mt-1 font-mono text-sm"
-                  placeholder='{"category": "restaurant", "location": "New York"}'
-                />
-                {errors.filters && <p className="mt-1 text-sm text-[var(--color-danger-500)]">{errors.filters}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Cron Schedule</label>
-                <input
-                  type="text"
-                  value={formData.cron}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cron: e.target.value }))}
-                  className="input mt-1 font-mono"
-                  placeholder="0 */2 * * *"
-                />
-                <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
-                  Current: Every 2 hours. Use{' '}
-                  <a href="https://crontab.guru" target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary-500)] hover:underline">
-                    crontab.guru
-                  </a>{' '}
-                  to help build your schedule.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Concurrency</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.concurrency}
-                  onChange={(e) => setFormData(prev => ({ ...prev, concurrency: parseInt(e.target.value) || 1 }))}
-                  className="input mt-1"
-                />
-                {errors.concurrency && <p className="mt-1 text-sm text-[var(--color-danger-500)]">{errors.concurrency}</p>}
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button type="button" onClick={onClose} className="btn btn-secondary">
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {initialData ? 'Update Job' : 'Create Job'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 };
 
-interface LogViewerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  jobId: string;
-  jobName: string;
-}
-
-const LogViewer: React.FC<LogViewerProps> = ({ isOpen, onClose, jobId, jobName }) => {
-  const [logs, setLogs] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { theme } = useTheme();
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchLogs();
-      const interval = setInterval(fetchLogs, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [isOpen, jobId]);
-
-  const fetchLogs = async () => {
-    try {
-      setLoading(true);
-      const jobLogs = await jobsAPI.getJobLogs(jobId, 500);
-      setLogs(jobLogs);
-    } catch (error) {
-      console.error('Failed to fetch logs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 text-center">
-        <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} aria-hidden="true"></div>
-
-        <div className="relative inline-block w-full max-w-4xl transform text-left align-middle transition-all">
-          <div className="card">
-            <div className="card-header flex items-center justify-between">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">
-                Logs - {jobName}
-              </h3>
-              <div className="flex items-center space-x-2">
-                {loading && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
-                )}
-                <button onClick={onClose} className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)] transition-colors">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-            <div className="card-body">
-              <div className="bg-[var(--color-bg-inset)] text-[var(--color-text-muted)] font-mono text-sm p-4 rounded-lg max-h-[60vh] overflow-y-auto">
-                {logs.length === 0 ? (
-                  <div className="text-center py-4">No logs available</div>
-                ) : (
-                  logs.map((log, index) => (
-                    <div key={index} className="whitespace-pre-wrap break-words">
-                      {log}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<ScrapingJob[]>([]);
@@ -362,15 +141,15 @@ export default function JobsPage() {
   const getStatusBadge = (status: JobStatus) => {
     switch (status) {
       case 'running':
-        return <span className="badge badge-success animate-pulse">Running</span>;
+        return <Badge variant="success">{t('jobs.status.running') || 'Running'}</Badge>;
       case 'paused':
-        return <span className="badge badge-warning">Paused</span>;
+        return <Badge variant="warning">{t('jobs.status.paused') || 'Paused'}</Badge>;
       case 'failed':
-        return <span className="badge badge-danger">Failed</span>;
+        return <Badge variant="danger">{t('jobs.status.failed') || 'Failed'}</Badge>;
       case 'completed':
-        return <span className="badge badge-primary">Completed</span>;
+        return <Badge variant="secondary">{t('jobs.status.completed') || 'Completed'}</Badge>;
       default:
-        return <span className="badge badge-secondary">Unknown</span>;
+        return <Badge variant="secondary">{t('jobs.status.unknown') || 'Unknown'}</Badge>;
     }
   };
 
@@ -378,7 +157,7 @@ export default function JobsPage() {
     return (
       <Layout>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-[var(--color-bg-subtle)] rounded w-1/4"></div>
+          <div className="h-8 bg-[var(--color-bg-subtle)] rounded w-1/4">{t('jobs.loading')}</div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-64 bg-[var(--color-bg-subtle)] rounded-lg"></div>

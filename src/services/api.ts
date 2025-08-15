@@ -80,27 +80,7 @@ export const dashboardAPI = {
     const response = await apiClient.get<ApiResponse<any>>('/api/metrics/sla');
     return response.data.data!;
   }
-  ,
-  // Stub for predictive metrics/anomaly detection
-  async getPredictiveMetrics(): Promise<any[]> {
-    // Return mock anomaly data
-    return [
-      {
-        id: 1,
-        metric: 'Lead Conversion Rate',
-        anomalyScore: 0.92,
-        timestamp: new Date().toISOString(),
-        description: 'Unusual spike in conversion rate detected.'
-      },
-      {
-        id: 2,
-        metric: 'Scrape Time',
-        anomalyScore: 0.85,
-        timestamp: new Date().toISOString(),
-        description: 'Scrape time anomaly detected.'
-      }
-    ];
-  }
+  
 };
 
 // Leads API
@@ -390,6 +370,32 @@ export const metricsAPI = {
   async getAlerts(): Promise<any> {
     const response = await apiClient.get<ApiResponse<any>>('/api/alerts');
     return response.data.data!;
+  }
+};
+
+// Scrapers / Workers API
+export const scrapersAPI = {
+  async getWorkers(): Promise<any[]> {
+    const response = await apiClient.get<ApiResponse<any[]>>('/api/scrapers');
+    return response.data.data || [];
+  },
+
+  async getWorker(idOrName: string): Promise<any> {
+    const response = await apiClient.get<ApiResponse<any>>(`/api/scrapers/${idOrName}`);
+    return response.data.data!;
+  },
+
+  async startWorker(name: string): Promise<void> {
+    await apiClient.post(`/api/scrapers/${name}/start`);
+  },
+
+  async stopWorker(name: string): Promise<void> {
+    await apiClient.post(`/api/scrapers/${name}/stop`);
+  },
+
+  async getWorkerLogs(name: string, lines: number = 100): Promise<string[]> {
+    const response = await apiClient.get<ApiResponse<string[]>>(`/api/scrapers/${name}/logs?lines=${lines}`);
+    return response.data.data || [];
   }
 };
 

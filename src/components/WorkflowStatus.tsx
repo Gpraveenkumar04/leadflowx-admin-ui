@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { t } from '../i18n';
 import { 
   CheckCircleIcon, 
   XCircleIcon, 
@@ -23,35 +24,35 @@ const WorkflowStatus: React.FC<WorkflowStatusProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const statuses: { value: WorkflowStatus; label: string; icon: React.ReactElement; color: string }[] = [
-    { 
-      value: 'pending', 
-      label: 'Pending', 
-      icon: <ClockIcon className="h-4 w-4" />, 
-      color: 'bg-yellow-100 text-yellow-800'
+    {
+      value: 'pending',
+      label: t('workflow.pending') || 'Pending',
+      icon: <ClockIcon className="h-4 w-4" />,
+      color: 'bg-[var(--color-warning-100)] text-[var(--color-warning-800)]'
     },
-    { 
-      value: 'in_progress', 
-      label: 'In Progress', 
-      icon: <ClockIcon className="h-4 w-4" />, 
-      color: 'bg-blue-100 text-blue-800' 
+    {
+      value: 'in_progress',
+      label: t('workflow.in_progress') || 'In Progress',
+      icon: <ClockIcon className="h-4 w-4" />,
+      color: 'bg-[var(--color-primary-100)] text-[var(--color-primary-800)]'
     },
-    { 
-      value: 'completed', 
-      label: 'Completed', 
-      icon: <CheckCircleIcon className="h-4 w-4" />, 
-      color: 'bg-green-100 text-green-800' 
+    {
+      value: 'completed',
+      label: t('workflow.completed') || 'Completed',
+      icon: <CheckCircleIcon className="h-4 w-4" />,
+      color: 'bg-[var(--color-success-100)] text-[var(--color-success-800)]'
     },
-    { 
-      value: 'on_hold', 
-      label: 'On Hold', 
-      icon: <ExclamationCircleIcon className="h-4 w-4" />, 
-      color: 'bg-orange-100 text-orange-800' 
+    {
+      value: 'on_hold',
+      label: t('workflow.on_hold') || 'On Hold',
+      icon: <ExclamationCircleIcon className="h-4 w-4" />,
+      color: 'bg-[var(--color-warning-100)] text-[var(--color-warning-800)]'
     },
-    { 
-      value: 'rejected', 
-      label: 'Rejected', 
-      icon: <XCircleIcon className="h-4 w-4" />, 
-      color: 'bg-red-100 text-red-800' 
+    {
+      value: 'rejected',
+      label: t('workflow.rejected') || 'Rejected',
+      icon: <XCircleIcon className="h-4 w-4" />,
+      color: 'bg-[var(--color-danger-100)] text-[var(--color-danger-800)]'
     }
   ];
 

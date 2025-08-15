@@ -1,68 +1,32 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-// Import auth middleware - adjust the path if necessary
 import { withApiAuth } from '../../../../lib/auth';
+import { spawn } from 'child_process';
+import os from 'os';
+// Lazy import pg on the server to avoid edge bundling issues
+let PgClient: any;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pg = require('pg');
+  PgClient = pg.Client;
+} catch {}
 
-// Mock data for development - replace with actual implementation
-const mockStatus = {
+// Simple in-memory status tracker
+const status = {
   isRunning: false,
-  totalLeads: 547,
-  qualifiedLeads: 238,
-  lastUpdate: new Date().toISOString(),
-  runningTime: '2h 14m'
+  totalLeads: 0,
+  qualifiedLeads: 0,
+  lastUpdate: null as string | null,
+  startedAt: null as number | null,
 };
 
-const mockLeads = [
-  {
-    id: '1',
-    name: 'Joe\'s Pizza',
-    location: 'New York, NY',
-    rating: 4.7,
-    reviews: 423,
-    website: false,
-    qualified: true,
-    scrapedAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Mike\'s Auto Repair',
-    location: 'Los Angeles, CA',
-    rating: 4.2,
-    reviews: 87,
-    website: false,
-    qualified: true,
-    scrapedAt: new Date().toISOString()
-  },
-  {
-    id: '3',
-    name: 'Elegant Hair Salon',
-    location: 'Chicago, IL',
-    rating: 4.9,
-    reviews: 156,
-    website: false,
-    qualified: true,
-    scrapedAt: new Date().toISOString()
-  },
-  {
-    id: '4',
-    name: 'Perfect Smile Dentistry',
-    location: 'Houston, TX',
-    rating: 4.5,
-    reviews: 92,
-    website: false,
-    qualified: true,
-    scrapedAt: new Date().toISOString()
-  },
-  {
-    id: '5',
-    name: 'Quick Fix Plumbing',
-    location: 'Phoenix, AZ',
-    rating: 4.3,
-    reviews: 64,
-    website: false,
-    qualified: true,
-    scrapedAt: new Date().toISOString()
-  }
-];
+// Postgres connection from environment (matches docker-compose defaults)
+function getPgClient() {
+  const connectionString =
+    process.env.DATABASE_URL ||
+    'postgres://postgres:postgres@localhost:5432/leadflowx';
+  if (!PgClient) throw new Error('pg client not available');
+  return new PgClient({ connectionString });
+}
 
 /**
  * Google Maps Scraper Status API
@@ -72,9 +36,32 @@ const mockLeads = [
  */
 async function handleGetStatus(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // In production, this would query the actual scraper status
-    // For now, return mock data
-    res.status(200).json(mockStatus);
+    // Optionally, read counts from DB
+    const client = getPgClient();
+    try {
+      await client.connect();
+      const total = await client.query('SELECT COUNT(*)::int AS c FROM lead_exports');
+      const qualified = await client.query(
+        "SELECT COUNT(*)::int AS c FROM lead_exports WHERE score IS NOT NULL AND score <> ''"
+      );
+      status.totalLeads = total.rows?.[0]?.c ?? status.totalLeads;
+      status.qualifiedLeads = qualified.rows?.[0]?.c ?? status.qualifiedLeads;
+    } catch (e) {
+      // ignore DB errors in status
+    } finally {
+      await client.end().catch(() => {});
+    }
+
+    res.status(200).json({
+      isRunning: status.isRunning,
+      totalLeads: status.totalLeads,
+      qualifiedLeads: status.qualifiedLeads,
+      lastUpdate: status.lastUpdate,
+      runningTime:
+        status.startedAt && status.isRunning
+          ? `${Math.floor((Date.now() - status.startedAt) / 60000)}m`
+          : null,
+    });
   } catch (error) {
     console.error('Error fetching Google Maps scraper status:', error);
     res.status(500).json({ error: 'Failed to fetch scraper status' });
@@ -89,15 +76,36 @@ async function handleGetStatus(req: NextApiRequest, res: NextApiResponse) {
  */
 async function handleGetLeads(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { limit = 10, offset = 0 } = req.query;
-    
-    // In production, this would query the database for actual leads
-    // For now, return mock data
-    res.status(200).json({ 
-      leads: mockLeads,
-      total: mockLeads.length,
+  const { limit = '25', offset = '0' } = req.query;
+
+    const client = getPgClient();
+    await client.connect();
+  await client.query("SET search_path TO leadflowx, public");
+    const totalRes = await client.query('SELECT COUNT(*)::int AS c FROM lead_exports');
+    const rowsRes = await client.query(
+      `SELECT lead_id, business_name, city_state_zip, rating, reviews, score, created_at
+       FROM lead_exports
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [Number(limit), Number(offset)]
+    );
+    await client.end();
+
+  const leads = (rowsRes.rows as any[]).map((r: any) => ({
+      id: r.lead_id,
+      name: r.business_name,
+      location: r.city_state_zip,
+      rating: r.rating ?? null,
+      reviews: r.reviews ?? null,
+      score: r.score ?? null,
+      scrapedAt: r.created_at,
+    }));
+
+    res.status(200).json({
+      leads,
+      total: totalRes.rows?.[0]?.c ?? leads.length,
       limit: Number(limit),
-      offset: Number(offset)
+      offset: Number(offset),
     });
   } catch (error) {
     console.error('Error fetching Google Maps leads:', error);
@@ -113,16 +121,65 @@ async function handleGetLeads(req: NextApiRequest, res: NextApiResponse) {
  */
 async function handleStartScraper(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { location, businessType, userId } = req.body;
-    
-    // In production, this would actually start the scraper
-    // For now, update mock status
-    mockStatus.isRunning = true;
-    mockStatus.lastUpdate = new Date().toISOString();
-    
-    console.log(`Starting Google Maps scraper for location: ${location}, business type: ${businessType}, userId: ${userId}`);
-    
-    res.status(200).json({ success: true, message: 'Scraper started successfully' });
+    const { location, businessType, userId, maxQualifiedLeads } = req.body;
+
+    if (status.isRunning) {
+      return res.status(409).json({ error: 'Scraper already running' });
+    }
+
+    // Build PowerShell command to reuse the proven E2E script
+    // We'll pass US-only and the global cap for qualified leads; optional location and type
+    const workspace = process.env.WORKSPACE_PATH || 'c://Dev//LeadFlowX-Enterprise';
+    const scriptPath = `${workspace}\\leadflowx-scraper-workers\\googlemaps-scraper\\scripts\\run_e2e.ps1`;
+
+    // Compose args
+    const args: string[] = [];
+    if (location) {
+      args.push(`-Cities \"${String(location).replace(/\"/g, '\\\"')}\"`);
+    }
+    if (businessType) {
+      args.push(`-Types \"${String(businessType).replace(/\"/g, '\\\"')}\"`);
+    }
+    args.push('-USOnly');
+    if (maxQualifiedLeads) {
+      args.push(`-MaxQualifiedLeads ${Number(maxQualifiedLeads)}`);
+    }
+
+    const psCommand = `& \"${scriptPath}\" ${args.join(' ')}`;
+
+    // Spawn PowerShell so Next API thread doesn't block; we won't stream output for now
+    const child = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand], {
+      windowsHide: true,
+    });
+
+    status.isRunning = true;
+    status.startedAt = Date.now();
+    status.lastUpdate = new Date().toISOString();
+
+    child.stdout.on('data', (d) => {
+      // naive status update when DB insert lines appear; also update timestamp
+      status.lastUpdate = new Date().toISOString();
+    });
+    child.stderr.on('data', (d) => {
+      // keep lastUpdate moving on stderr as well
+      status.lastUpdate = new Date().toISOString();
+    });
+    child.on('exit', async (code) => {
+      status.isRunning = false;
+      status.startedAt = null;
+      status.lastUpdate = new Date().toISOString();
+      // refresh counts
+      try {
+        const client = getPgClient();
+        await client.connect();
+        const t = await client.query('SELECT COUNT(*)::int AS c FROM lead_exports');
+        status.totalLeads = t.rows?.[0]?.c ?? status.totalLeads;
+        await client.end();
+      } catch {}
+    });
+
+    console.log('Started Google Maps scraper with command:', psCommand);
+    res.status(200).json({ success: true, message: 'Scraper started' });
   } catch (error) {
     console.error('Error starting Google Maps scraper:', error);
     res.status(500).json({ error: 'Failed to start scraper' });
@@ -137,15 +194,18 @@ async function handleStartScraper(req: NextApiRequest, res: NextApiResponse) {
  */
 async function handleStopScraper(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // In production, this would actually stop the scraper
-    // For now, update mock status
-    mockStatus.isRunning = false;
-    mockStatus.lastUpdate = new Date().toISOString();
-    mockStatus.runningTime = ''; // Empty string instead of null
-    
-    console.log('Stopping Google Maps scraper');
-    
-    res.status(200).json({ success: true, message: 'Scraper stopped successfully' });
+  // Basic best-effort: stop via orchestrator script if available
+  const workspace = process.env.WORKSPACE_PATH || 'c://Dev//LeadFlowX-Enterprise';
+  const manageScript = `${workspace}\\leadflowx-scraper-workers\\manage-scrapers.ps1`;
+  const cmd = `& \"${manageScript}\" stop googlemaps`;
+  spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', cmd], { windowsHide: true });
+
+  status.isRunning = false;
+  status.startedAt = null;
+  status.lastUpdate = new Date().toISOString();
+
+  console.log('Requested Google Maps scraper stop');
+  res.status(200).json({ success: true, message: 'Stop signal sent' });
   } catch (error) {
     console.error('Error stopping Google Maps scraper:', error);
     res.status(500).json({ error: 'Failed to stop scraper' });
@@ -180,16 +240,32 @@ async function handleSaveConfig(req: NextApiRequest, res: NextApiResponse) {
  */
 async function handleExportLeads(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // In production, this would query all qualified leads and generate a CSV
-    // For now, generate a simple CSV from mock data
-    const csvHeader = 'id,name,location,rating,reviews,website,qualified,scrapedAt\n';
-    const csvRows = mockLeads.map(lead => 
-      `${lead.id},"${lead.name}","${lead.location}",${lead.rating},${lead.reviews},${lead.website},${lead.qualified},"${lead.scrapedAt}"`
-    ).join('\n');
-    const csv = csvHeader + csvRows;
-    
+    // Build CSV from DB exports
+    const client = getPgClient();
+    await client.connect();
+  await client.query("SET search_path TO leadflowx, public");
+    const rows = await client.query(
+      `SELECT lead_id, business_name, city_state_zip, rating, reviews, score, created_at
+       FROM lead_exports
+       ORDER BY created_at DESC`
+    );
+    await client.end();
+
+    const header = 'lead_id,business_name,city_state_zip,rating,reviews,score,created_at\n';
+    const body = (rows.rows as any[])
+      .map((r: any) =>
+        [r.lead_id, r.business_name, r.city_state_zip, r.rating ?? '', r.reviews ?? '', r.score ?? '', r.created_at?.toISOString?.() ?? r.created_at]
+          .map((v) => (typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g, '""')}"` : v))
+          .join(',')
+      )
+      .join('\n');
+    const csv = header + body;
+
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=google-maps-leads-${new Date().toISOString().split('T')[0]}.csv`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=google-maps-leads-${new Date().toISOString().split('T')[0]}.csv`
+    );
     res.status(200).send(csv);
   } catch (error) {
     console.error('Error exporting Google Maps leads:', error);
