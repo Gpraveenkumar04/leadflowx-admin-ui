@@ -7,9 +7,12 @@ const toast = {
   loading: jest.fn(),
   dismiss: jest.fn(),
   custom: jest.fn(),
+  // Allow calling toast() as a shorthand in some code paths
+  __call: jest.fn(),
 };
 
-// Register the jest mock for the module name used in the app
-jest.mock('react-hot-toast', () => ({ toast }));
+// Provide both default export and named export for compatibility
+jest.mock('react-hot-toast', () => ({ __esModule: true, default: toast, toast }));
 
 export { toast };
+export default toast;

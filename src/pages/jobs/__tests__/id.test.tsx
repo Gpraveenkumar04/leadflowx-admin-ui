@@ -1,5 +1,5 @@
 import React from 'react';
-// Ensure the toast mock is registered before any modules that import it
+// toast mock is registered globally via jest.setup.ts
 const { toast } = require('../../../test/utils/mockReactHotToast');
 // Increase default timeout for these integration-like tests
 jest.setTimeout(20000);

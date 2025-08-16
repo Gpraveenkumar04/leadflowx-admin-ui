@@ -1,3 +1,6 @@
+// Global jest setup: register shared react-hot-toast mock for all tests
+// Keep this file minimal; tests can still require/import the mock explicitly if needed.
+import './src/test/utils/mockReactHotToast';
 import '@testing-library/jest-dom';
 /// <reference types="@types/jest" />
 import { server } from './src/test/msw/server';
