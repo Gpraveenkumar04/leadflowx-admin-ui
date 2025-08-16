@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from '../i18n';
 import { 
   ClockIcon,
   UserCircleIcon,
@@ -36,7 +37,7 @@ interface AuditTrailProps {
 
 const AuditTrail: React.FC<AuditTrailProps> = ({ 
   events, 
-  title = "Audit Trail",
+  title = t('audit.title'),
   maxHeight = "300px" 
 }) => {
   // Format timestamp to relative time and full date tooltip
@@ -45,12 +46,12 @@ const AuditTrail: React.FC<AuditTrailProps> = ({
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    let relativeTime = '';
-    if (diffInSeconds < 60) relativeTime = 'just now';
-    else if (diffInSeconds < 3600) relativeTime = `${Math.floor(diffInSeconds / 60)}m ago`;
-    else if (diffInSeconds < 86400) relativeTime = `${Math.floor(diffInSeconds / 3600)}h ago`;
-    else if (diffInSeconds < 604800) relativeTime = `${Math.floor(diffInSeconds / 86400)}d ago`;
-    else relativeTime = date.toLocaleDateString();
+  let relativeTime = '';
+  if (diffInSeconds < 60) relativeTime = t('audit.just_now');
+  else if (diffInSeconds < 3600) relativeTime = t('audit.minutes_ago', { n: Math.floor(diffInSeconds / 60) });
+  else if (diffInSeconds < 86400) relativeTime = t('audit.hours_ago', { n: Math.floor(diffInSeconds / 3600) });
+  else if (diffInSeconds < 604800) relativeTime = t('audit.days_ago', { n: Math.floor(diffInSeconds / 86400) });
+  else relativeTime = date.toLocaleDateString();
     
     // Full date and time for tooltip
     const fullDateTime = new Intl.DateTimeFormat('en-US', {
@@ -93,35 +94,35 @@ const AuditTrail: React.FC<AuditTrailProps> = ({
   const getEventDescription = (event: AuditEvent) => {
     switch (event.eventType) {
       case 'create':
-        return `created this ${event.entityType}`;
+        return t('audit.created', { entity: event.entityType });
       case 'update':
         if (event.changes && event.changes.length) {
           if (event.changes.length === 1) {
-            return `updated the ${event.changes[0].field} field`;
+            return t('audit.updated_field', { field: event.changes[0].field });
           }
-          return `updated ${event.changes.length} fields`;
+          return t('audit.updated_multiple', { count: event.changes.length });
         }
-        return `updated this ${event.entityType}`;
+        return t('audit.generic_action', { action: 'updated' });
       case 'delete':
-        return `deleted this ${event.entityType}`;
+        return t('audit.deleted', { entity: event.entityType });
       case 'approve':
-        return `approved this ${event.entityType}`;
+        return t('audit.approved', { entity: event.entityType });
       case 'reject':
-        return `rejected this ${event.entityType}${event.metadata?.reason ? ` (${event.metadata.reason})` : ''}`;
+        return t('audit.rejected', { entity: event.entityType, reason: event.metadata?.reason ? ` (${event.metadata.reason})` : '' });
       case 'tag':
         if (event.metadata?.added) {
-          return `added tag "${event.metadata.added}"`;
+          return t('audit.added_tag', { tag: event.metadata.added });
         }
         if (event.metadata?.removed) {
-          return `removed tag "${event.metadata.removed}"`;
+          return t('audit.removed_tag', { tag: event.metadata.removed });
         }
-        return `modified tags`;
+        return t('audit.modified_tags');
       case 'view':
-        return `viewed this ${event.entityType}`;
+        return t('audit.viewed', { entity: event.entityType });
       case 'export':
-        return `exported this ${event.entityType}`;
+        return t('audit.exported', { entity: event.entityType });
       default:
-        return `performed action on this ${event.entityType}`;
+        return t('audit.performed_action', { entity: event.entityType });
     }
   };
 
@@ -211,10 +212,10 @@ const AuditTrail: React.FC<AuditTrailProps> = ({
                   </li>
                 );
               })
-            ) : (
+              ) : (
               <li>
                 <div className="text-center py-4 text-sm text-gray-500">
-                  No audit events found.
+                  {t('audit.none')}
                 </div>
               </li>
             )}

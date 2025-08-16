@@ -32,10 +32,11 @@ describe('ScraperWorkersTable', () => {
   });
 
   it('shows error when workers fetch fails and when actions fail', async () => {
-    (api.scrapersAPI.getWorkers as jest.Mock).mockRejectedValue(new Error('network')); 
-    render(<ScraperWorkersTable />);
-    await waitFor(() => expect(api.scrapersAPI.getWorkers).toHaveBeenCalled());
-    expect(await screen.findByText(/Failed to load workers/i)).toBeInTheDocument();
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  (api.scrapersAPI.getWorkers as jest.Mock).mockRejectedValue(new Error('network'));
+  render(<ScraperWorkersTable />);
+  await waitFor(() => expect(api.scrapersAPI.getWorkers).toHaveBeenCalled());
+  expect(await screen.findByText(/Failed to load workers/i)).toBeInTheDocument();
 
     // Now mock workers but action fails
     const mockWorkers = [ { name: 'google-maps', status: 'paused', lastRun: '1m', leadsScraped: 3, avgRuntime: '3m' } ];
@@ -48,5 +49,7 @@ describe('ScraperWorkersTable', () => {
     startBtn.click();
     await waitFor(() => expect(api.scrapersAPI.startWorker).toHaveBeenCalledWith('google-maps'));
     expect(await screen.findByText(/Failed to start scraper/i)).toBeInTheDocument();
+  expect(consoleErrorSpy).toHaveBeenCalled();
+  consoleErrorSpy.mockRestore();
   });
 });

@@ -26,31 +26,31 @@ const WorkflowStatus: React.FC<WorkflowStatusProps> = ({
   const statuses: { value: WorkflowStatus; label: string; icon: React.ReactElement; color: string }[] = [
     {
       value: 'pending',
-      label: t('workflow.pending') || 'Pending',
+      label: t('workflow.pending') || 'workflow.pending',
       icon: <ClockIcon className="h-4 w-4" />,
       color: 'bg-[var(--color-warning-100)] text-[var(--color-warning-800)]'
     },
     {
       value: 'in_progress',
-      label: t('workflow.in_progress') || 'In Progress',
+      label: t('workflow.in_progress') || 'workflow.in_progress',
       icon: <ClockIcon className="h-4 w-4" />,
       color: 'bg-[var(--color-primary-100)] text-[var(--color-primary-800)]'
     },
     {
       value: 'completed',
-      label: t('workflow.completed') || 'Completed',
+      label: t('workflow.completed') || 'workflow.completed',
       icon: <CheckCircleIcon className="h-4 w-4" />,
       color: 'bg-[var(--color-success-100)] text-[var(--color-success-800)]'
     },
     {
       value: 'on_hold',
-      label: t('workflow.on_hold') || 'On Hold',
+      label: t('workflow.on_hold') || 'workflow.on_hold',
       icon: <ExclamationCircleIcon className="h-4 w-4" />,
       color: 'bg-[var(--color-warning-100)] text-[var(--color-warning-800)]'
     },
     {
       value: 'rejected',
-      label: t('workflow.rejected') || 'Rejected',
+      label: t('workflow.rejected') || 'workflow.rejected',
       icon: <XCircleIcon className="h-4 w-4" />,
       color: 'bg-[var(--color-danger-100)] text-[var(--color-danger-800)]'
     }

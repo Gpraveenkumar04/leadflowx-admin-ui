@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { HomeIcon, UsersIcon, BriefcaseIcon, CheckCircleIcon, CogIcon, ChartBarIcon, CodeBracketIcon, Bars3Icon, XMarkIcon, BellIcon, UserCircleIcon, MoonIcon, SunIcon, MagnifyingGlassIcon, ChevronDownIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../design-system/ThemeProvider';
+import { t } from '../i18n';
 import { clsx } from 'clsx';
 import Topbar from './Shell/Topbar';
 import Sidebar from './Shell/Sidebar';
@@ -27,40 +28,40 @@ interface Theme {
 }
 
 const navigation: NavigationItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: t('nav.dashboard'), href: '/dashboard', icon: HomeIcon },
   { 
-    name: 'Leads', 
+    name: t('nav.leads'),
     href: '/leads', 
     icon: UsersIcon,
     submenu: [
-      { name: 'All Leads', href: '/leads', icon: UsersIcon },
-      { name: 'Approved Leads', href: '/leads?status=approved', icon: CheckCircleIcon },
-      { name: 'Rejected Leads', href: '/leads?status=rejected', icon: XMarkIcon },
-      { name: 'Needs Review', href: '/leads?status=needs_review', icon: BriefcaseIcon }
+      { name: t('nav.leads.all'), href: '/leads', icon: UsersIcon },
+      { name: t('nav.leads.approved'), href: '/leads?status=approved', icon: CheckCircleIcon },
+      { name: t('nav.leads.rejected'), href: '/leads?status=rejected', icon: XMarkIcon },
+      { name: t('nav.leads.needs_review'), href: '/leads?status=needs_review', icon: BriefcaseIcon }
     ]
   },
-  { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
-  { name: 'Scraper Workers', href: '/scraper-workers', icon: Cog6ToothIcon },
-  { name: 'QA Queue', href: '/qa', icon: CheckCircleIcon, badge: 12 },
-  { name: 'Metrics', href: '/metrics', icon: ChartBarIcon },
+  { name: t('nav.jobs'), href: '/jobs', icon: BriefcaseIcon },
+  { name: t('nav.scraper_workers'), href: '/scraper-workers', icon: Cog6ToothIcon },
+  { name: t('nav.qa_queue'), href: '/qa', icon: CheckCircleIcon, badge: 12 },
+  { name: t('nav.metrics'), href: '/metrics', icon: ChartBarIcon },
   { 
-    name: 'Settings', 
+    name: t('nav.settings'),
     href: '/config', 
     icon: CogIcon,
     submenu: [
-      { name: 'General Config', href: '/config', icon: Cog6ToothIcon },
-      { name: 'API Settings', href: '/config/api', icon: CodeBracketIcon },
-      { name: 'User Management', href: '/config/users', icon: UsersIcon },
+      { name: t('nav.settings.general'), href: '/config', icon: Cog6ToothIcon },
+      { name: t('nav.settings.api'), href: '/config/api', icon: CodeBracketIcon },
+      { name: t('nav.settings.users'), href: '/config/users', icon: UsersIcon },
     ]
   },
-  { name: 'Dev Portal', href: '/dev', icon: CodeBracketIcon },
+  { name: t('nav.dev_portal'), href: '/dev', icon: CodeBracketIcon },
 ];
 
 const userNavigation = [
-  { name: 'Your Profile', href: '#profile' },
-  { name: 'Notifications', href: '#notifications' },
-  { name: 'Settings', href: '#settings' },
-  { name: 'Sign out', href: '#signout' },
+  { name: t('user.profile'), href: '#profile' },
+  { name: t('user.notifications'), href: '#notifications' },
+  { name: t('user.settings'), href: '#settings' },
+  { name: t('user.sign_out'), href: '#signout' },
 ];
 
 const themes: Theme[] = [

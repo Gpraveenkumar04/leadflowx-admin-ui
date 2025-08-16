@@ -397,6 +397,32 @@ export const scrapersAPI = {
     const response = await apiClient.get<ApiResponse<string[]>>(`/api/scrapers/${name}/logs?lines=${lines}`);
     return response.data.data || [];
   }
+
+  ,
+
+  // Google Maps scraper convenience helpers
+  async getGoogleMapsStatus(): Promise<any> {
+    const response = await apiClient.get<ApiResponse<any>>('/api/scrapers/google-maps/status');
+    return response.data.data!;
+  },
+
+  async getGoogleMapsLeads(params?: { limit?: number; location?: string; businessType?: string }): Promise<any[]> {
+    const response = await apiClient.get<ApiResponse<any>>('/api/scrapers/google-maps/leads', { params });
+    return (response.data.data && response.data.data.leads) || [];
+  },
+
+  async startGoogleMaps(params?: { location?: string; businessType?: string; userId?: string; maxQualifiedLeads?: number }): Promise<void> {
+    await apiClient.post('/api/scrapers/google-maps/start', params || {});
+  },
+
+  async stopGoogleMaps(): Promise<void> {
+    await apiClient.post('/api/scrapers/google-maps/stop');
+  },
+
+  async exportGoogleMaps(): Promise<Blob> {
+    const response = await apiClient.get('/api/scrapers/google-maps/export', { responseType: 'blob' });
+    return response.data;
+  }
 };
 
 // Audit API

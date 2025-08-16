@@ -6,6 +6,7 @@ import Badge from '../../src/components/ui/Badge';
 import LogViewer from '../../components/jobs/LogViewer';
 import { t } from '../../src/i18n';
 import { toast } from 'react-hot-toast';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 export default function JobDetailPage() {
   const router = useRouter();
@@ -71,7 +72,15 @@ export default function JobDetailPage() {
 
   const handleStop = async () => {
     if (!job) return;
-    if (!confirm(t('jobs.confirm.stop') || 'Stop this job?')) return;
+    // open confirm dialog
+    setShowConfirm(true);
+  };
+
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleConfirmStop = async () => {
+    setShowConfirm(false);
+    if (!job) return;
     setActionLoading(true);
     try {
       await jobsAPI.stopJob(job.id);
@@ -86,6 +95,8 @@ export default function JobDetailPage() {
       setActionLoading(false);
     }
   };
+
+  const handleCancelStop = () => setShowConfirm(false);
 
   if (loading) return <Layout><div className="card">{t('jobs.loading')}</div></Layout>;
   if (!job) return <Layout><div className="card">Job not found</div></Layout>;
@@ -104,11 +115,56 @@ export default function JobDetailPage() {
                 <Badge variant={job.status === 'running' ? 'success' : job.status === 'paused' ? 'warning' : 'secondary'}>{job.status}</Badge>
                 <div className="flex space-x-2">
                   {job.status === 'running' ? (
-                    <button aria-label={t('jobs.action.pause')} className="btn btn-warning btn-sm" onClick={handlePause}>{t('jobs.action.pause') || 'Pause'}</button>
+                    <button
+                      aria-label={t('jobs.action.pause')}
+                      className={"btn btn-warning btn-sm"}
+                      onClick={handlePause}
+                      disabled={actionLoading}
+                      aria-disabled={actionLoading}
+                    >
+                      {actionLoading ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
+                          {t('jobs.action.pause') || 'Pause'}
+                        </span>
+                      ) : (
+                        t('jobs.action.pause') || 'Pause'
+                      )}
+                    </button>
                   ) : (
-                    <button aria-label={t('jobs.action.start')} className="btn btn-success btn-sm" onClick={handleStart}>{t('jobs.action.start') || 'Start'}</button>
+                    <button
+                      aria-label={t('jobs.action.start')}
+                      className={"btn btn-success btn-sm"}
+                      onClick={handleStart}
+                      disabled={actionLoading}
+                      aria-disabled={actionLoading}
+                    >
+                      {actionLoading ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
+                          {t('jobs.action.start') || 'Start'}
+                        </span>
+                      ) : (
+                        t('jobs.action.start') || 'Start'
+                      )}
+                    </button>
                   )}
-                  <button aria-label={t('jobs.action.stop')} className="btn btn-danger btn-sm" onClick={handleStop}>{t('jobs.action.stop') || 'Stop'}</button>
+                  <button
+                    aria-label={t('jobs.action.stop')}
+                    className="btn btn-danger btn-sm"
+                    onClick={handleStop}
+                    disabled={actionLoading}
+                    aria-disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
+                        {t('jobs.action.stop') || 'Stop'}
+                      </span>
+                    ) : (
+                      t('jobs.action.stop') || 'Stop'
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -130,6 +186,13 @@ export default function JobDetailPage() {
         </div>
       </div>
       {showLogs && <LogViewer isOpen={true} onClose={() => setShowLogs(false)} jobId={job.id} jobName={job.name} />}
+      <ConfirmDialog
+        open={showConfirm}
+        title={t('jobs.confirm.title') || 'Confirm'}
+        message={t('jobs.confirm.stop') || 'Stop this job?'}
+        onConfirm={handleConfirmStop}
+        onCancel={handleCancelStop}
+      />
     </Layout>
   );
 }

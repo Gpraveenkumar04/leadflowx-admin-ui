@@ -121,7 +121,23 @@ async function handleGetLeads(req: NextApiRequest, res: NextApiResponse) {
  */
 async function handleStartScraper(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { location, businessType, userId, maxQualifiedLeads } = req.body;
+    // Accept both flat params and a `filters` object. Also accept single string or array values.
+    const { location, businessType, userId, maxQualifiedLeads, filters } = req.body;
+
+    // Normalize locations and types into arrays
+    const locationsArr: string[] = [];
+    const typesArr: string[] = [];
+    const pushLocation = (v: any) => { if (!v && v !== 0) return; if (Array.isArray(v)) v.forEach(x => x && locationsArr.push(String(x))); else locationsArr.push(String(v)); };
+    const pushType = (v: any) => { if (!v && v !== 0) return; if (Array.isArray(v)) v.forEach(x => x && typesArr.push(String(x))); else typesArr.push(String(v)); };
+
+    pushLocation(location);
+    pushType(businessType);
+    if (filters) {
+      if (filters.location) pushLocation(filters.location);
+      if (filters.locations) pushLocation(filters.locations);
+      if (filters.businessType) pushType(filters.businessType);
+      if (filters.types) pushType(filters.types);
+    }
 
     if (status.isRunning) {
       return res.status(409).json({ error: 'Scraper already running' });
@@ -134,12 +150,9 @@ async function handleStartScraper(req: NextApiRequest, res: NextApiResponse) {
 
     // Compose args
     const args: string[] = [];
-    if (location) {
-      args.push(`-Cities \"${String(location).replace(/\"/g, '\\\"')}\"`);
-    }
-    if (businessType) {
-      args.push(`-Types \"${String(businessType).replace(/\"/g, '\\\"')}\"`);
-    }
+    // Add city/type args for each provided value
+    locationsArr.forEach(loc => args.push(`-Cities \"${String(loc).replace(/\"/g, '\\\"')}\"`));
+    typesArr.forEach(t => args.push(`-Types \"${String(t).replace(/\"/g, '\\\"')}\"`));
     args.push('-USOnly');
     if (maxQualifiedLeads) {
       args.push(`-MaxQualifiedLeads ${Number(maxQualifiedLeads)}`);

@@ -11,6 +11,7 @@ import Layout from '../src/components/Layout';
 import { qaAPI } from '../src/services/api';
 import { Lead, QAStatus } from '../src/types';
 import { clsx } from 'clsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 interface QANoteModalProps {
   isOpen: boolean;
@@ -313,16 +314,25 @@ export default function QAQueue() {
   };
 
   const handleBulkApprove = async () => {
-    if (!confirm(`Are you sure you want to approve ${selectedLeads.length} leads?`)) return;
-    
+    // open confirm dialog
+    setPendingBulkApprove(true);
+  };
+
+  const [pendingBulkApprove, setPendingBulkApprove] = useState(false);
+
+  const confirmBulkApprove = async () => {
     try {
       await Promise.all(selectedLeads.map(id => qaAPI.approveLead(id)));
       setLeads(prev => prev.filter(lead => !selectedLeads.includes(lead.id)));
       setSelectedLeads([]);
     } catch (error) {
       console.error('Failed to bulk approve:', error);
+    } finally {
+      setPendingBulkApprove(false);
     }
   };
+
+  const cancelBulkApprove = () => setPendingBulkApprove(false);
 
   const handleBulkReject = async () => {
     const reason = prompt('Enter rejection reason:');
@@ -636,6 +646,13 @@ export default function QAQueue() {
           lead={showDetailModal}
         />
       </div>
+      <ConfirmDialog
+        open={pendingBulkApprove}
+        title="Confirm"
+        message={`Are you sure you want to approve ${selectedLeads.length} leads?`}
+        onConfirm={confirmBulkApprove}
+        onCancel={cancelBulkApprove}
+      />
     </Layout>
   );
 }

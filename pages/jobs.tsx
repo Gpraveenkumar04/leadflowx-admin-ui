@@ -20,6 +20,7 @@ import JobForm from '../components/jobs/JobForm';
 import LogViewer from '../components/jobs/LogViewer';
 import Badge from '../src/components/ui/Badge';
 import { t } from '../src/i18n';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 type JobFormData = {
   name: string;
@@ -116,15 +117,25 @@ export default function JobsPage() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm('Are you sure you want to delete this job? This action cannot be undone.')) return;
-    
+    // open confirmation dialog
+    setPendingDelete(jobId);
+  };
+
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+
+  const confirmDeleteJob = async () => {
+    if (!pendingDelete) return;
     try {
-      await jobsAPI.deleteJob(jobId);
-      setJobs(prev => prev.filter(job => job.id !== jobId));
+      await jobsAPI.deleteJob(pendingDelete);
+      setJobs(prev => prev.filter(job => job.id !== pendingDelete));
     } catch (error) {
       console.error('Failed to delete job:', error);
+    } finally {
+      setPendingDelete(null);
     }
   };
+
+  const cancelDelete = () => setPendingDelete(null);
 
   const handleCloneJob = async (job: ScrapingJob) => {
     const newName = prompt('Enter name for cloned job:', `${job.name} (Copy)`);
@@ -306,6 +317,14 @@ export default function JobsPage() {
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={!!pendingDelete}
+          title="Confirm"
+          message={"Are you sure you want to delete this job? This action cannot be undone."}
+          onConfirm={confirmDeleteJob}
+          onCancel={cancelDelete}
+        />
 
         {/* Job Form Modal */}
         <JobForm

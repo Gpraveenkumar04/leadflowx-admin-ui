@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { scrapersAPI } from '../../src/services/api';
+import { t } from '../../src/i18n';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 type Lead = {
   id: string;
@@ -69,15 +73,15 @@ const GoogleMapsScraperStatus: React.FC = () => {
   const fetchStatus = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/scrapers/google-maps/status');
+      const res = await scrapersAPI.getGoogleMapsStatus();
       setStats({
-        totalLeads: res.data.totalLeads,
-        qualifiedLeads: res.data.qualifiedLeads,
-        lastUpdate: res.data.lastUpdate,
-        isRunning: res.data.isRunning,
-        runningTime: res.data.runningTime,
+        totalLeads: res.totalLeads,
+        qualifiedLeads: res.qualifiedLeads,
+        lastUpdate: res.lastUpdate,
+        isRunning: res.isRunning,
+        runningTime: res.runningTime,
       });
-      setStatusText(res.data.isRunning ? 'running' : 'stopped');
+      setStatusText(res.isRunning ? 'running' : 'stopped');
     } catch (e) {
       console.error('Error fetching status', e);
       setStatusText('stopped');
@@ -88,8 +92,8 @@ const GoogleMapsScraperStatus: React.FC = () => {
 
   const fetchLeads = async () => {
     try {
-      const res = await api.get('/api/scrapers/google-maps/leads', { params: { limit: 50 } });
-      setLeads(res.data.leads || []);
+      const data = await scrapersAPI.getGoogleMapsLeads({ limit: 50 });
+      setLeads(data || []);
     } catch (e) {
       console.error('Error fetching leads', e);
     }
@@ -100,36 +104,50 @@ const GoogleMapsScraperStatus: React.FC = () => {
   const startScraper = async () => {
     try {
       setStatusText('starting');
-      await api.post('/api/scrapers/google-maps/start', {
+      await scrapersAPI.startGoogleMaps({
         location: selectedLocation || undefined,
         businessType: selectedCategory || undefined,
         userId: user?.id,
         maxQualifiedLeads: maxQualifiedLeads || 10,
       });
       setStatusText('running');
-      fetchStatus();
+  await fetchStatus();
       setTimeout(() => fetchLeads(), 5000);
+  toast.success(t('scrapers.toast.started') || 'Scraper started');
     } catch (e) {
       console.error('Error starting scraper', e);
       setStatusText('stopped');
+  toast.error(t('scrapers.toast.start_failed') || 'Failed to start scraper');
     }
   };
 
   const stopScraper = async () => {
+    // open confirm dialog instead of window.confirm
+    setShowConfirm(true);
+  };
+
+  const [showConfirm, setShowConfirm] = React.useState(false);
+
+  const handleConfirmStop = async () => {
+    setShowConfirm(false);
     try {
       setStatusText('stopping');
-      await api.post('/api/scrapers/google-maps/stop');
+      await scrapersAPI.stopGoogleMaps();
       setStatusText('stopped');
-      fetchStatus();
+      await fetchStatus();
+      toast.success(t('scrapers.toast.stopped') || 'Scraper stopped');
     } catch (e) {
       console.error('Error stopping scraper', e);
+      toast.error(t('scrapers.toast.stop_failed') || 'Failed to stop scraper');
     }
   };
 
+  const handleCancelStop = () => setShowConfirm(false);
+
   const exportLeads = async () => {
     try {
-      const res = await api.get('/api/scrapers/google-maps/export', { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const blob = await scrapersAPI.exportGoogleMaps();
+      const url = window.URL.createObjectURL(new Blob([blob]));
       const a = document.createElement('a');
       a.href = url;
       a.download = `google-maps-leads-${new Date().toISOString().split('T')[0]}.csv`;
@@ -144,28 +162,28 @@ const GoogleMapsScraperStatus: React.FC = () => {
   const renderBadge = () => {
     switch (statusText) {
       case 'running':
-        return <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">Running</span>;
+        return <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">{t('scrapers.status.running') || 'Running'}</span>;
       case 'starting':
-        return <span className="inline-block px-2 py-1 text-xs font-semibold text-yellow-600 bg-yellow-100 rounded">Starting</span>;
+        return <span className="inline-block px-2 py-1 text-xs font-semibold text-yellow-600 bg-yellow-100 rounded">{t('scrapers.status.starting') || 'Starting'}</span>;
       case 'stopping':
-        return <span className="inline-block px-2 py-1 text-xs font-semibold text-orange-600 bg-orange-100 rounded">Stopping</span>;
+        return <span className="inline-block px-2 py-1 text-xs font-semibold text-orange-600 bg-orange-100 rounded">{t('scrapers.status.stopping') || 'Stopping'}</span>;
       case 'stopped':
-        return <span className="inline-block px-2 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded">Stopped</span>;
+        return <span className="inline-block px-2 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded">{t('scrapers.status.stopped') || 'Stopped'}</span>;
       case 'loading':
       default:
-        return <span className="inline-block px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 rounded">Loading</span>;
+        return <span className="inline-block px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 rounded">{t('scrapers.loading') || 'Loading'}</span>;
     }
   };
 
   return (
     <div className="card p-5" role="region" aria-labelledby="gm-scraper-heading">
       <div className="flex items-center justify-between mb-4">
-        <h3 id="gm-scraper-heading" className="text-lg font-semibold flex items-center gap-2">
+          <h3 id="gm-scraper-heading" className="text-lg font-semibold flex items-center gap-2">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--color-accent-500)" />
             <circle cx="12" cy="9" r="2.5" fill="white" />
           </svg>
-          Google Maps Scraper
+          {t('scrapers.google_maps.title') || 'Google Maps Scraper'}
         </h3>
         {renderBadge()}
       </div>
@@ -178,21 +196,21 @@ const GoogleMapsScraperStatus: React.FC = () => {
         <>
           <div className="flex gap-3 mb-6">
             <div className="flex-1 p-3 bg-[var(--color-bg-subtle)] radius-md">
-              <div className="text-xs text-[var(--color-text-muted)]">Total Leads</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{t('scrapers.total_leads') || 'Total Leads'}</div>
               <div className="text-2xl font-bold transition-colors duration-200 text-[var(--color-text)]">{stats.totalLeads}</div>
             </div>
             <div className="flex-1 p-3 bg-[var(--color-bg-subtle)] radius-md">
-              <div className="text-xs text-[var(--color-text-muted)]">Qualified Leads</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{t('scrapers.qualified_leads') || 'Qualified Leads'}</div>
               <div className="text-2xl font-bold transition-colors duration-200 text-[var(--color-text)]">{stats.qualifiedLeads}</div>
             </div>
             <div className="flex-1 p-3 bg-[var(--color-bg-subtle)] radius-md">
-              <div className="text-xs text-[var(--color-text-muted)]">Last Update</div>
-              <div className="text-base">{stats.lastUpdate ? new Date(stats.lastUpdate).toLocaleString() : 'Never'}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{t('scrapers.last_update') || 'Last Update'}</div>
+              <div className="text-base">{stats.lastUpdate ? new Date(stats.lastUpdate).toLocaleString() : t('scrapers.never') || 'Never'}</div>
             </div>
           </div>
 
           <div className="mb-6">
-            <div className="text-sm font-medium mb-2">Scraper Controls</div>
+            <div className="text-sm font-medium mb-2">{t('scrapers.controls') || 'Scraper Controls'}</div>
             <div className="flex flex-wrap gap-2 items-center">
               <select aria-label="Select location" className="select" value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)}>
                 <option value="">Select location</option>
@@ -209,21 +227,29 @@ const GoogleMapsScraperStatus: React.FC = () => {
               </select>
 
               <div className="flex items-start">
-                <div className="text-xs text-[var(--color-text-muted)] mr-2">Max Qualified</div>
+                <div className="text-xs text-[var(--color-text-muted)] mr-2">{t('scrapers.max_qualified') || 'Max Qualified'}</div>
                 <input type="number" min={1} max={10000} value={maxQualifiedLeads} onChange={(e) => setMaxQualifiedLeads(parseInt(e.target.value || '10', 10))} className="border rounded px-2 py-1 text-sm w-28" />
               </div>
 
                 <div className="flex gap-2">
-                  <button aria-label="Start scraper" className="btn-success btn-sm" onClick={startScraper} disabled={statusText === 'running' || statusText === 'starting'}>Start</button>
-                  <button aria-label="Stop scraper" className="btn-danger btn-sm" onClick={stopScraper} disabled={statusText === 'stopped' || statusText === 'stopping'}>Stop</button>
-                  <button aria-label="Export leads" className="btn-primary btn-sm" onClick={exportLeads}>Export</button>
+                  <button aria-label="Start scraper" className="btn-success btn-sm" onClick={startScraper} disabled={statusText === 'running' || statusText === 'starting'}>{t('scrapers.action.start') || 'Start'}</button>
+                        <button aria-label="Stop scraper" className="btn-danger btn-sm" onClick={stopScraper} disabled={statusText === 'stopped' || statusText === 'stopping'}>{t('scrapers.action.stop') || 'Stop'}</button>
+                  <button aria-label="Export leads" className="btn-primary btn-sm" onClick={exportLeads}>{t('scrapers.action.export') || 'Export'}</button>
                 </div>
             </div>
           </div>
 
+                <ConfirmDialog
+                  open={showConfirm}
+                  title={t('scrapers.confirm.title') || 'Confirm'}
+                  message={t('scrapers.confirm.stop') || 'Are you sure you want to stop the scraper?'}
+                  onConfirm={handleConfirmStop}
+                  onCancel={handleCancelStop}
+                />
+
           {leads.length > 0 ? (
             <div className="overflow-x-auto">
-              <div className="text-sm font-medium mb-2">Recent Qualified Leads</div>
+              <div className="text-sm font-medium mb-2">{t('scrapers.recent_qualified') || 'Recent Qualified Leads'}</div>
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-left">
@@ -250,11 +276,11 @@ const GoogleMapsScraperStatus: React.FC = () => {
               </table>
             </div>
           ) : (
-            <div className="p-4 text-center text-muted">No leads data available</div>
+            <div className="p-4 text-center text-muted">{t('scrapers.no_leads') || 'No leads data available'}</div>
           )}
 
           {stats.isRunning && stats.runningTime && (
-            <div className="flex justify-end mt-4 text-sm text-muted">Running for: {stats.runningTime}</div>
+            <div className="flex justify-end mt-4 text-sm text-muted">{t('scrapers.running_for') || 'Running for:'} {stats.runningTime}</div>
           )}
         </>
       )}
