@@ -99,7 +99,7 @@ export default function JobDetailPage() {
   const handleCancelStop = () => setShowConfirm(false);
 
   if (loading) return <Layout><div className="card">{t('jobs.loading')}</div></Layout>;
-  if (!job) return <Layout><div className="card">Job not found</div></Layout>;
+  if (!job) return <Layout><div className="card">{t('jobs.not_found') || 'Job not found'}</div></Layout>;
 
   return (
     <Layout>
@@ -112,7 +112,7 @@ export default function JobDetailPage() {
                 <p className="text-sm text-[var(--color-text-muted)]">{job.source}</p>
               </div>
               <div className="flex items-center space-x-4">
-                <Badge variant={job.status === 'running' ? 'success' : job.status === 'paused' ? 'warning' : 'secondary'}>{job.status}</Badge>
+                <Badge variant={job.status === 'running' ? 'success' : job.status === 'paused' ? 'warning' : 'secondary'}>{t(`jobs.status.${job.status}`) || job.status}</Badge>
                 <div className="flex space-x-2">
                   {job.status === 'running' ? (
                     <button
@@ -169,8 +169,8 @@ export default function JobDetailPage() {
               </div>
             </div>
             <div className="mt-4">
-              <p className="text-sm text-[var(--color-text-muted)]">Schedule: <span className="font-mono">{job.cron}</span></p>
-              <p className="text-sm text-[var(--color-text-muted)]">Concurrency: {job.concurrency}</p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t('jobs.field.schedule')}: <span className="font-mono">{job.cron}</span></p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t('jobs.field.concurrency')}: {job.concurrency}</p>
             </div>
           </div>
           <div className="card-footer">
@@ -188,7 +188,7 @@ export default function JobDetailPage() {
       {showLogs && <LogViewer isOpen={true} onClose={() => setShowLogs(false)} jobId={job.id} jobName={job.name} />}
       <ConfirmDialog
         open={showConfirm}
-        title={t('jobs.confirm.title') || 'Confirm'}
+        title={t('confirm.confirm')}
         message={t('jobs.confirm.stop') || 'Stop this job?'}
         onConfirm={handleConfirmStop}
         onCancel={handleCancelStop}

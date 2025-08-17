@@ -397,8 +397,11 @@ export const scrapersAPI = {
     const response = await apiClient.get<ApiResponse<string[]>>(`/api/scrapers/${name}/logs?lines=${lines}`);
     return response.data.data || [];
   }
-
   ,
+  async createWorker(name: string): Promise<void> {
+    // Create a scraper worker resource on the backend. Backends may accept { name } payload.
+    await apiClient.post('/api/scrapers', { name });
+  },
 
   // Google Maps scraper convenience helpers
   async getGoogleMapsStatus(): Promise<any> {

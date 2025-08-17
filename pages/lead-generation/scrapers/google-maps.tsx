@@ -2,11 +2,12 @@ import React from 'react';
 import AdminLayout from '../../../components/layouts/AdminLayout';
 import PageHeader from '../../../components/ui/PageHeader';
 import GoogleMapsScraperStatus from '../../../components/scrapers/GoogleMapsScraperStatus';
+import { t } from '../../../src/i18n';
 
 const GoogleMapsScraper: React.FC = () => {
   return (
     <AdminLayout>
-      <PageHeader title="Google Maps Lead Scraper" subtitle="Configure and monitor Google Maps lead generation" />
+      <PageHeader title={t('scrapers.google_maps.title')} subtitle={t('scrapers.google_maps.subtitle')} />
 
       <div className="mt-6">
         <GoogleMapsScraperStatus />
@@ -14,8 +15,8 @@ const GoogleMapsScraper: React.FC = () => {
 
       <section className="mt-6 card">
         <div className="card-body">
-          <h4 className="text-lg font-semibold mb-2">Configuration</h4>
-          <p className="text-sm text-[var(--color-text-muted)]">Advanced configuration is available via the scraper worker tooling. Use the controls above to run and manage scraper runs.</p>
+          <h4 className="text-lg font-semibold mb-2">{t('scrapers.configuration.title')}</h4>
+          <p className="text-sm text-[var(--color-text-muted)]">{t('scrapers.configuration.desc')}</p>
         </div>
       </section>
     </AdminLayout>

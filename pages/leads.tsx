@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
 import LeadDetail from '../src/components/LeadDetail';
+import { t } from '../src/i18n';
 import { leadsAPI } from '../src/services/api';
 import { Lead, LeadFilters, TableSort, QAStatus, DATA_SOURCES, Tag, SavedView } from '../src/types';
 import { useLeadsData } from '@/hooks/useLeadsData';
@@ -103,13 +104,14 @@ export default function LeadsPage() {
     try {
   const blob = await leadsAPI.exportLeads(filters); // still using direct API for export
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'leads.csv';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  const filename = t('download.leads_filename');
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export leads:', error);
     }
@@ -166,31 +168,31 @@ export default function LeadsPage() {
             <div className="md:flex md:items-center md:justify-between">
               <div className="flex-1 min-w-0">
                 <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-                  Lead Management
+                  {t('nav.leads')}
                 </h2>
                 <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                  Manage and review your lead database
+                  {t('leads.manage_subtitle')}
                 </p>
               </div>
               <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
                 {selectedLeads.length > 0 && (
                   <>
                     <Button variant="primary" size="sm" onClick={handleBulkApprove}>
-                      Approve Selected ({selectedLeads.length})
+                      {t('lead.actions.approve_selected', { n: selectedLeads.length })}
                     </Button>
                     <Button variant="danger" size="sm" onClick={handleBulkReject}>
-                      Reject Selected
+                      {t('lead.actions.reject_selected')}
                     </Button>
                   </>
                 )}
-                <Button variant="secondary" size="sm" onClick={handleExport} leftIcon={<DocumentArrowDownIcon className="h-4 w-4" />}>Export CSV</Button>
+                <Button variant="secondary" size="sm" onClick={handleExport} leftIcon={<DocumentArrowDownIcon className="h-4 w-4" />}>{t('lead.action.export_csv')}</Button>
                   {tags.some(t => t.pending) && (
                     <Button variant="secondary" size="sm" onClick={async () => { await syncPendingTags(); }} className="relative">
                       <span className="absolute inline-flex h-2 w-2 top-0 right-0 -mt-1 -mr-1">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-warning-400)] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-warning-500)]"></span>
                       </span>
-                      Sync Pending Tags ({tags.filter(t => t.pending).length})
+                      {t('leads.sync_pending_tags', { n: tags.filter(t => t.pending).length })}
                     </Button>
                   )}
               </div>
@@ -202,8 +204,8 @@ export default function LeadsPage() {
         <div className="card">
           <div className="card-body">
             <div className="flex justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <h3 className="text-lg font-medium text-[var(--color-text)]">Filters</h3>
+                <div className="flex items-center space-x-3">
+                <h3 className="text-lg font-medium text-[var(--color-text)]">{t('leads.filters.title')}</h3>
                 <div className="relative">
                   <div className="flex space-x-2">
                     <select
@@ -211,7 +213,7 @@ export default function LeadsPage() {
                       onChange={(e) => applyView(e.target.value || '')}
                       className="select"
                     >
-                      <option value="">Select saved view</option>
+                      <option value="">{t('leads.views.select_saved')}</option>
                       {savedViews.map(view => (
                         <option key={view.id} value={view.id}>
                           {view.name}
@@ -223,7 +225,7 @@ export default function LeadsPage() {
                       <button
                         onClick={() => deleteView(activeViewId)}
                         className="btn btn-danger btn-sm"
-                        title="Delete this view"
+                        title={t('leads.views.delete_title')}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>
@@ -237,18 +239,18 @@ export default function LeadsPage() {
                   className="btn btn-primary btn-sm inline-flex items-center"
                 >
                   <BookmarkIcon className="h-4 w-4 mr-1" />
-                  Save Current View
+                  {t('leads.views.save_current')}
                 </button>
               </div>
             </div>
             
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Search</label>
+        <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('leads.filters.search_label')}</label>
                 <div className="mt-1 relative">
                   <input
-                    type="text"
-                    placeholder="Search leads..."
+          type="text"
+          placeholder={t('leads.filters.search_placeholder')}
                     value={filters.search || ''}
                     onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                     className="input pl-10"
@@ -257,7 +259,7 @@ export default function LeadsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Source</label>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('leads.filters.source_label')}</label>
                 <select
                   value={filters.source?.[0] || ''}
                   onChange={(e) => setFilters(prev => ({ 
@@ -266,7 +268,7 @@ export default function LeadsPage() {
                   }))}
                   className="select mt-1"
                 >
-                  <option value="">All Sources</option>
+                  <option value="">{t('leads.filters.all_sources')}</option>
                   {DATA_SOURCES.map(source => (
                     <option key={source} value={source}>
                       {source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -275,7 +277,7 @@ export default function LeadsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">QA Status</label>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('leads.filters.qa_label')}</label>
                 <select
                   value={filters.qaStatus?.[0] || ''}
                   onChange={(e) => setFilters(prev => ({ 
@@ -284,15 +286,15 @@ export default function LeadsPage() {
                   }))}
                   className="select mt-1"
                 >
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="needs_review">Needs Review</option>
+                  <option value="">{t('leads.filters.all_statuses')}</option>
+                  <option value="pending">{t('workflow.pending')}</option>
+                  <option value="approved">{t('lead.qa.approved')}</option>
+                  <option value="rejected">{t('lead.qa.rejected')}</option>
+                  <option value="needs_review">{t('lead.qa.needs_review')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Date Range</label>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('leads.filters.date_label')}</label>
                 <input
                   type="date"
                   value={filters.dateFrom || ''}
@@ -301,7 +303,7 @@ export default function LeadsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Tags</label>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('leads.filters.tags_label')}</label>
                 <select
                   value={filters.tags?.[0] || ''}
                   onChange={(e) => setFilters(prev => ({ 
@@ -310,7 +312,7 @@ export default function LeadsPage() {
                   }))}
                   className="select mt-1"
                 >
-                  <option value="">All Tags</option>
+                  <option value="">{t('leads.filters.all_tags')}</option>
                   {tags.map(tag => (
                       <option key={tag.id} value={tag.id}>
                         {tag.name}{tag.pending ? ' (pending)' : ''}
@@ -355,33 +357,33 @@ export default function LeadsPage() {
               onClick={() => setPage(pagination.page - 1)}
               className="btn btn-secondary btn-sm"
             >
-              Previous
+              {t('actions.previous')}
             </button>
             <button
               disabled={!hasMore}
               onClick={() => setPage(pagination.page + 1)}
               className="btn btn-secondary btn-sm"
             >
-              Next
+              {t('actions.next')}
             </button>
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-[var(--color-text-muted)]">
-                Showing{' '}
+                {t('leads.pagination.showing')} {' '}
                 <span className="font-medium text-[var(--color-text)]">
                   {allLeads.length > 0 ? 1 : 0}
                 </span>{' '}
-                to{' '}
+                {t('leads.pagination.to')} {' '}
                 <span className="font-medium text-[var(--color-text)]">
                   {allLeads.length}
                 </span>{' '}
-                of{' '}
+                {t('leads.pagination.of')} {' '}
                 <span className="font-medium text-[var(--color-text)]">{pagination.total}</span>{' '}
-                results
+                {t('leads.pagination.results')}
               </p>
               {hasMore && (
-                <p className="text-xs text-[var(--color-text-subtle)]">Scroll to load more (page {pagination.page} / {pagination.totalPages})</p>
+                <p className="text-xs text-[var(--color-text-subtle)]">{t('leads.scroll_to_load', { page: pagination.page, totalPages: pagination.totalPages })}</p>
               )}
             </div>
             <div>
@@ -391,14 +393,14 @@ export default function LeadsPage() {
                   onClick={() => setPage(pagination.page - 1)}
                   className="btn btn-secondary btn-sm rounded-l-md"
                 >
-                  Previous
+                  {t('actions.previous')}
                 </button>
                 <button
                   disabled={!hasMore}
                   onClick={() => setPage(pagination.page + 1)}
                   className="btn btn-secondary btn-sm rounded-r-md"
                 >
-                  Next
+                  {t('actions.next')}
                 </button>
               </nav>
             </div>
@@ -413,16 +415,16 @@ export default function LeadsPage() {
               <div className="relative card w-full max-w-lg">
                 <div className="card-header">
                   <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">
-                    Save Current View
+                    {t('leads.views.modal.title')}
                   </h3>
                 </div>
                 <div className="card-body">
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    Save your current filters and sorting options for quick access later.
+                    {t('leads.views.modal.desc')}
                   </p>
                   <div className="mt-4">
                     <label htmlFor="viewName" className="block text-sm font-medium text-[var(--color-text-muted)]">
-                      View Name
+                      {t('leads.views.modal.name_label')}
                     </label>
                     <input
                       type="text"
@@ -430,7 +432,7 @@ export default function LeadsPage() {
                       className="input mt-1 w-full"
                       value={newViewName}
                       onChange={(e) => setNewViewName(e.target.value)}
-                      placeholder="Enter a name for this view"
+                      placeholder={t('leads.views.modal.name_placeholder')}
                     />
                   </div>
                 </div>
@@ -443,7 +445,7 @@ export default function LeadsPage() {
                       setNewViewName('');
                     }}
                   >
-                    Cancel
+                    {t('actions.cancel')}
                   </button>
                   <button
                     type="button"
@@ -451,7 +453,7 @@ export default function LeadsPage() {
                     onClick={saveCurrentView}
                     disabled={!newViewName.trim()}
                   >
-                    Save View
+                    {t('leads.views.modal.save')}
                   </button>
                 </div>
               </div>
@@ -467,12 +469,12 @@ export default function LeadsPage() {
               <div className="relative card w-full max-w-lg">
                 <div className="card-header">
                   <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">
-                    Add Tags
+                    {t('leads.tags.modal.title')}
                   </h3>
                 </div>
                 <div className="card-body">
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    Select tags to add to this lead
+                    {t('leads.tags.modal.desc')}
                   </p>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     {tags.map(tag => (
@@ -490,46 +492,46 @@ export default function LeadsPage() {
                     ))}
                   </div>
                   <div className="mt-6 border-t border-[var(--color-border)] pt-4 text-left">
-                    <h4 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">Create New Tag</h4>
-                    <div className="flex items-center gap-2 mb-3">
-                      <input
-                        type="text"
-                        value={newTagName}
-                        onChange={(e) => setNewTagName(e.target.value)}
-                        placeholder="Tag name"
-                        className="input flex-1 py-1 px-2 text-sm"
-                      />
-                      <input
-                        type="color"
-                        value={newTagColor}
-                        onChange={(e) => setNewTagColor(e.target.value)}
-                        className="h-8 w-10 p-0 border border-[var(--color-border)] rounded bg-[var(--color-bg-surface)]"
-                      />
-                      <button
-                        disabled={!newTagName.trim()}
-                        onClick={handleCreateTag}
-                        className="btn btn-primary btn-sm"
-                      >Create</button>
-                    </div>
-                    <p className="text-xs text-[var(--color-text-subtle)]">Creating will auto-assign to this lead.</p>
-                  </div>
-                </div>
-                <div className="card-footer bg-[var(--color-bg-subtle)] flex justify-end">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setShowTagPicker(false);
-                      setTagLeadId(null);
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                    <h4 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">{t('leads.tags.create.title')}</h4>
+                     <div className="flex items-center gap-2 mb-3">
+                       <input
+                         type="text"
+                         value={newTagName}
+                         onChange={(e) => setNewTagName(e.target.value)}
+                         placeholder={t('leads.tags.create.placeholder')}
+                         className="input flex-1 py-1 px-2 text-sm"
+                       />
+                       <input
+                         type="color"
+                         value={newTagColor}
+                         onChange={(e) => setNewTagColor(e.target.value)}
+                         className="h-8 w-10 p-0 border border-[var(--color-border)] rounded bg-[var(--color-bg-surface)]"
+                       />
+                       <button
+                         disabled={!newTagName.trim()}
+                         onClick={handleCreateTag}
+                         className="btn btn-primary btn-sm"
+                       >{t('actions.create')}</button>
+                     </div>
+                    <p className="text-xs text-[var(--color-text-subtle)]">{t('leads.tags.create.hint')}</p>
+                   </div>
+                 </div>
+                 <div className="card-footer bg-[var(--color-bg-subtle)] flex justify-end">
+                   <button
+                     type="button"
+                     className="btn btn-secondary"
+                     onClick={() => {
+                       setShowTagPicker(false);
+                       setTagLeadId(null);
+                     }}
+                   >
+                    {t('actions.close')}
+                   </button>
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
       </div>
     </Layout>
   );

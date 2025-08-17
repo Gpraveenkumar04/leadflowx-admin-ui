@@ -14,6 +14,7 @@ import { DashboardMetrics } from '../src/types';
 import { io } from 'socket.io-client';
 import { useQuery } from '@tanstack/react-query';
 import MetricCard from '../src/components/MetricCard';
+import { t } from '../src/i18n';
 import { useTheme } from '../src/design-system/ThemeProvider';
 import DrillDownChart from '../components/ui/DrillDownChart';
 
@@ -121,10 +122,10 @@ export default function Dashboard() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-              Dashboard
+              {t('dashboard.title')}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Real-time overview of your lead generation pipeline
+              {t('dashboard.subtitle')}
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -145,28 +146,28 @@ export default function Dashboard() {
         {/* Metric Cards */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
-            title="Total Raw Leads"
+            title={t('dashboard.metrics.total_raw')}
             value={metrics.totalRawLeads.toLocaleString()}
             change={{ value: 12.5, type: 'increase' }}
             icon={UsersIcon}
             intent="primary"
           />
           <MetricCard
-            title="QA Queue"
+            title={t('dashboard.metrics.qa_queue')}
             value={metrics.slaMetrics.qaBacklog}
             change={{ value: 2.1, type: 'decrease' }}
             icon={CheckCircleIcon}
             intent="warning"
           />
           <MetricCard
-            title="Avg Scrape Time"
+            title={t('dashboard.metrics.avg_scrape_time')}
             value={`${metrics.slaMetrics.avgScrapeTime}s`}
             change={{ value: 8.2, type: 'decrease' }}
             icon={ClockIcon}
             intent="success"
           />
           <MetricCard
-            title="Avg Audit Time"
+            title={t('dashboard.metrics.avg_audit_time')}
             value={`${metrics.slaMetrics.avgAuditTime}s`}
             change={{ value: 3.1, type: 'increase' }}
             icon={ChartBarIcon}
@@ -179,8 +180,8 @@ export default function Dashboard() {
           {/* Leads by Source */}
           <div className="card">
             <div className="card-header">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">Leads by Source</h3>
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">Distribution of leads across different sources</p>
+              <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.charts.leads_by_source.title')}</h3>
+              <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.charts.leads_by_source.desc')}</p>
             </div>
             <div className="card-body">
               <div className="h-80">
@@ -206,8 +207,8 @@ export default function Dashboard() {
           {/* Status Funnel */}
           <div className="card">
             <div className="card-header">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">Status Funnel</h3>
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">Lead progression through the pipeline</p>
+              <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.charts.status_funnel.title')}</h3>
+              <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.charts.status_funnel.desc')}</p>
             </div>
             <div className="card-body">
               <div className="space-y-4">
@@ -240,8 +241,8 @@ export default function Dashboard() {
         {/* Real-time Activity Feed */}
         <div className="card">
           <div className="card-header">
-            <h3 className="text-lg font-medium text-[var(--color-text)]">Real-time Activity</h3>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">Live feed of system activities</p>
+            <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.activity.title')}</h3>
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.activity.desc')}</p>
           </div>
           <div className="card-body">
             <div className="text-sm text-[var(--color-text-muted)]">No recent activity</div>

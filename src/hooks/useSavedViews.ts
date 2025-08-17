@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { SavedView, LeadFilters, TableSort } from '@/types';
 import { leadsAPI } from '@/services/api';
 import toast from 'react-hot-toast';
+import { t } from '../i18n';
 
 export function useSavedViews(initial: SavedView[] = [], deps: { filters: LeadFilters; sort: TableSort }) {
   const [savedViews, setSavedViews] = useState<SavedView[]>(initial);
@@ -12,18 +13,18 @@ export function useSavedViews(initial: SavedView[] = [], deps: { filters: LeadFi
     if (!name.trim()) return null;
     try {
       const view = await leadsAPI.createSavedView(name.trim(), filters, sort);
-      setSavedViews(prev => [...prev, view]);
-      setActiveViewId(view.id);
-      toast.success('View saved');
+  setSavedViews(prev => [...prev, view]);
+  setActiveViewId(view.id);
+  toast.success(t('leads.views.toast.saved'));
       return view;
     } catch {
-      toast.error('Failed to save view');
+  toast.error(t('leads.views.toast.save_failed'));
       return null;
     }
   }, [filters, sort]);
 
   const deleteView = useCallback(async (id: string) => {
-    try { await leadsAPI.deleteSavedView(id); toast.success('View deleted'); } catch { toast.error('Delete view failed'); }
+  try { await leadsAPI.deleteSavedView(id); toast.success(t('leads.views.toast.deleted')); } catch { toast.error(t('leads.views.toast.delete_failed')); }
     setSavedViews(prev => prev.filter(v => v.id !== id));
     setActiveViewId(v => v === id ? null : v);
   }, []);

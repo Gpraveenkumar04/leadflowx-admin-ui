@@ -5,7 +5,6 @@ import os from 'os';
 // Lazy import pg on the server to avoid edge bundling issues
 let PgClient: any;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const pg = require('pg');
   PgClient = pg.Client;
 } catch {}

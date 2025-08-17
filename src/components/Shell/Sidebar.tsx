@@ -4,6 +4,7 @@ import { ChevronDownIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/reac
 import { clsx } from 'clsx';
 import NavItem from './NavItem';
 import SidebarGroup from './SidebarGroup';
+import { t } from '../../i18n';
 
 interface NavigationItem {
   name: string;
@@ -41,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ navigation, collapsed, toggleC
           <div className="p-3">
             <div className="relative">
               <MagnifyingGlassIcon className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-              <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search" className="w-full pl-9 pr-3 h-9 radius-md bg-[var(--color-bg-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]" />
+              <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder={t('shell.search.short')} className="w-full pl-9 pr-3 h-9 radius-md bg-[var(--color-bg-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]" />
             </div>
           </div>
           <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Mobile primary">
@@ -68,8 +69,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ navigation, collapsed, toggleC
             </SidebarGroup>
           </nav>
           <div className="p-3 border-t border-[var(--color-border-subtle)] flex gap-2">
-            <button className="flex-1 h-9 radius-md text-xs font-medium bg-[var(--color-bg-muted)] hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)]">{density === 'comfortable' ? 'Compact' : 'Comfort'}</button>
-            <button className="flex-1 h-9 radius-md text-xs font-medium bg-[var(--color-bg-muted)] hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)]">Theme</button>
+            <button className="flex-1 h-9 radius-md text-xs font-medium bg-[var(--color-bg-muted)] hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)]">{density === 'comfortable' ? t('shell.view.compact') : t('shell.view.comfort')}</button>
+            <button className="flex-1 h-9 radius-md text-xs font-medium bg-[var(--color-bg-muted)] hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)]">{t('shell.theme')}</button>
           </div>
         </div>
       </div>
@@ -87,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ navigation, collapsed, toggleC
           <div className="px-3 pt-3 pb-2 hidden xl:block">
             <div className="relative">
               <MagnifyingGlassIcon className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-              <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search..." className="w-full h-9 pl-9 pr-3 radius-md bg-[var(--color-bg-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]" />
+              <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder={t('shell.search.long')} className="w-full h-9 pl-9 pr-3 radius-md bg-[var(--color-bg-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]" />
             </div>
           </div>
           <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary navigation">

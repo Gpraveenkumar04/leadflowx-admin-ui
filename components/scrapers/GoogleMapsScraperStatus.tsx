@@ -150,7 +150,8 @@ const GoogleMapsScraperStatus: React.FC = () => {
       const url = window.URL.createObjectURL(new Blob([blob]));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `google-maps-leads-${new Date().toISOString().split('T')[0]}.csv`;
+  const filename = t('download.google_maps_filename', { date: new Date().toISOString().split('T')[0] });
+  a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -212,15 +213,15 @@ const GoogleMapsScraperStatus: React.FC = () => {
           <div className="mb-6">
             <div className="text-sm font-medium mb-2">{t('scrapers.controls') || 'Scraper Controls'}</div>
             <div className="flex flex-wrap gap-2 items-center">
-              <select aria-label="Select location" className="select" value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)}>
-                <option value="">Select location</option>
+              <select aria-label={t('scrapers.select_location') || 'Select location'} className="select" value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)}>
+                <option value="">{t('scrapers.select_location_placeholder') || 'Select location'}</option>
                 {locations.map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
               </select>
 
-              <select aria-label="Select business type" className="select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                <option value="">Select business type</option>
+              <select aria-label={t('scrapers.select_business_type') || 'Select business type'} className="select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                <option value="">{t('scrapers.select_business_type_placeholder') || 'Select business type'}</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -232,9 +233,9 @@ const GoogleMapsScraperStatus: React.FC = () => {
               </div>
 
                 <div className="flex gap-2">
-                  <button aria-label="Start scraper" className="btn-success btn-sm" onClick={startScraper} disabled={statusText === 'running' || statusText === 'starting'}>{t('scrapers.action.start') || 'Start'}</button>
-                        <button aria-label="Stop scraper" className="btn-danger btn-sm" onClick={stopScraper} disabled={statusText === 'stopped' || statusText === 'stopping'}>{t('scrapers.action.stop') || 'Stop'}</button>
-                  <button aria-label="Export leads" className="btn-primary btn-sm" onClick={exportLeads}>{t('scrapers.action.export') || 'Export'}</button>
+      <button aria-label={t('scrapers.action.start_generic')} className="btn-success btn-sm" onClick={startScraper} disabled={statusText === 'running' || statusText === 'starting'}>{t('scrapers.action.start') || 'Start'}</button>
+        <button aria-label={t('scrapers.action.stop_generic')} className="btn-danger btn-sm" onClick={stopScraper} disabled={statusText === 'stopped' || statusText === 'stopping'}>{t('scrapers.action.stop') || 'Stop'}</button>
+      <button aria-label={t('scrapers.action.export') || 'Export leads'} className="btn-primary btn-sm" onClick={exportLeads}>{t('scrapers.action.export') || 'Export'}</button>
                 </div>
             </div>
           </div>
@@ -253,12 +254,12 @@ const GoogleMapsScraperStatus: React.FC = () => {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-left">
-                    <th className="p-2">Business Name</th>
-                    <th className="p-2">Location</th>
-                    <th className="p-2">Rating</th>
-                    <th className="p-2">Reviews</th>
-                    <th className="p-2">Score</th>
-                    <th className="p-2">Scraped At</th>
+                    <th className="p-2">{t('scrapers.table.business_name') || 'Business Name'}</th>
+                    <th className="p-2">{t('scrapers.table.location') || 'Location'}</th>
+                    <th className="p-2">{t('scrapers.table.rating') || 'Rating'}</th>
+                    <th className="p-2">{t('scrapers.table.reviews') || 'Reviews'}</th>
+                    <th className="p-2">{t('scrapers.table.score') || 'Score'}</th>
+                    <th className="p-2">{t('scrapers.table.scraped_at') || 'Scraped At'}</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
 import { clsx } from 'clsx';
+import { t } from '../src/i18n';
 
 interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -250,10 +251,10 @@ export default function DevPortal() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-              Developer Portal
+              {t('dev.title')}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              APIs, SDKs, and documentation for LeadFlowX integration
+              {t('dev.subtitle')}
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -267,11 +268,11 @@ export default function DevPortal() {
         {/* Navigation Tabs */}
         <div className="border-b border-[var(--color-border)]">
           <nav className="-mb-px flex space-x-8">
-            {[
-              { key: 'overview', label: 'Overview' },
-              { key: 'api', label: 'API Reference' },
-              { key: 'sdk', label: 'SDKs & Examples' },
-              { key: 'changelog', label: 'Changelog' }
+              {[
+              { key: 'overview', label: t('dev.tab.overview') },
+              { key: 'api', label: t('dev.tab.api') },
+              { key: 'sdk', label: t('dev.tab.sdk') },
+              { key: 'changelog', label: t('dev.tab.changelog') }
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -380,21 +381,21 @@ export default function DevPortal() {
                       <span className="text-sm font-medium text-[var(--color-text)]">Python SDK</span>
                       <button className="btn btn-sm btn-primary">
                         <CloudArrowDownIcon className="h-4 w-4 mr-1" />
-                        Download
+                        {t('dev.download')}
                       </button>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-[var(--color-text)]">Go SDK</span>
                       <button className="btn btn-sm btn-primary">
                         <CloudArrowDownIcon className="h-4 w-4 mr-1" />
-                        Download
+                        {t('dev.download')}
                       </button>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-[var(--color-text)]">Node.js SDK</span>
                       <button className="btn btn-sm btn-primary">
                         <CloudArrowDownIcon className="h-4 w-4 mr-1" />
-                        Download
+                        {t('dev.download')}
                       </button>
                     </div>
                   </div>
@@ -430,7 +431,7 @@ export default function DevPortal() {
                         <button
                           onClick={() => copyToClipboard(endpoint.example || endpoint.endpoint, endpoint.endpoint)}
                           className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
-                          title="Copy example"
+                          title={t('dev.copy.example')}
                         >
                           {copiedEndpoint === endpoint.endpoint ? (
                             <CheckBadgeIcon className="h-4 w-4 text-[var(--color-success-500)]" />
@@ -496,7 +497,7 @@ export default function DevPortal() {
                   <button
                     onClick={() => copyToClipboard(SDK_EXAMPLES[selectedSDK])}
                     className="absolute top-2 right-2 text-[var(--color-text-subtle)] hover:text-[var(--color-text)] z-10"
-                    title="Copy code"
+                    title={t('dev.copy.code')}
                   >
                     <ClipboardDocumentIcon className="h-5 w-5" />
                   </button>

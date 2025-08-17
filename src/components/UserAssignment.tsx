@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { t } from '../../src/i18n';
 import { UsersIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { User } from '@/types';
 
@@ -105,7 +106,7 @@ const UserAssignment: React.FC<UserAssignmentProps> = ({
             className="flex items-center space-x-1 text-sm text-gray-700 border border-gray-300 rounded-md px-2.5 py-1.5 bg-white hover:bg-gray-50"
           >
             <UsersIcon className="h-4 w-4" />
-            <span>Assign</span>
+            <span>{t('user.assign')}</span>
           </button>
         )}
       </div>
@@ -116,7 +117,7 @@ const UserAssignment: React.FC<UserAssignmentProps> = ({
             <div className="mb-2">
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder={t('user.search.placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
@@ -126,7 +127,7 @@ const UserAssignment: React.FC<UserAssignmentProps> = ({
             {isLoading ? (
               <div className="py-2 px-3 text-center">Loading users...</div>
             ) : filteredUsers.length === 0 ? (
-              <div className="py-2 px-3 text-center text-gray-500">No users found</div>
+                <div className="py-2 px-3 text-center text-gray-500">{t('user.search.no_results')}</div>
             ) : (
               <div className="max-h-60 overflow-y-auto">
                 {filteredUsers.map((user) => (
@@ -166,7 +167,7 @@ const UserAssignment: React.FC<UserAssignmentProps> = ({
                   className="w-full flex items-center px-3 py-2 text-sm text-red-600 rounded-md hover:bg-red-50"
                 >
                   <XMarkIcon className="h-4 w-4 mr-2" />
-                  Remove assignment
+                  {t('user.assign.remove')}
                 </button>
               </div>
             )}

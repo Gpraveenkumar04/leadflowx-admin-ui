@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { t } from '../../src/i18n';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { DataSource, DATA_SOURCES } from '@/types';
 
@@ -78,8 +79,8 @@ export default function JobForm({ isOpen, onClose, onSubmit, initialData }: JobF
               </div>
 
               <div className="flex justify-end space-x-3">
-                <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
-                <button type="submit" className="btn btn-primary">Save</button>
+                <button type="button" onClick={onClose} className="btn btn-secondary">{t('actions.cancel')}</button>
+                <button type="submit" className="btn btn-primary">{t('actions.save')}</button>
               </div>
             </form>
           </div>

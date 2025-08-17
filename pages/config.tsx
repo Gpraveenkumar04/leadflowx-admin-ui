@@ -7,6 +7,7 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import Layout from '../src/components/Layout';
+import { t } from '../src/i18n';
 import ConfigSection from '../components/ui/ConfigSection';
 import { configAPI } from '../src/services/api';
 import { AppConfig } from '../src/types';
@@ -114,9 +115,9 @@ export default function ConfigPage() {
   if (!config) {
     return (
       <Layout>
-        <div className="text-center py-12 card">
+            <div className="text-center py-12 card">
           <div className="card-body">
-            <p className="text-[var(--color-text-muted)]">Failed to load configuration</p>
+            <p className="text-[var(--color-text-muted)]">{t('config.load_failed')}</p>
           </div>
         </div>
       </Layout>
@@ -130,10 +131,10 @@ export default function ConfigPage() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-              Configuration
+              {t('config.title')}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Manage system settings and configurations
+              {t('config.subtitle')}
             </p>
           </div>
           <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
@@ -141,7 +142,7 @@ export default function ConfigPage() {
               <>
                 <button onClick={handleReset} className="btn btn-secondary">
                   <XMarkIcon className="h-4 w-4 mr-2" />
-                  Reset
+                  {t('actions.cancel')}
                 </button>
                 <button 
                   onClick={handleSave} 
@@ -153,7 +154,7 @@ export default function ConfigPage() {
                   ) : (
                     <CheckIcon className="h-4 w-4 mr-2" />
                   )}
-                  Save Changes
+                  {saving ? t('actions.saving') : t('actions.save')}
                 </button>
               </>
             )}
@@ -176,8 +177,8 @@ export default function ConfigPage() {
 
         {/* Audit Weights Configuration */}
         <ConfigSection
-          title="Audit Weights"
-          description="Configure the relative importance of different audit factors"
+          title={t('config.audit_weights.title')}
+          description={t('config.audit_weights.desc')}
         >
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
@@ -270,8 +271,8 @@ export default function ConfigPage() {
 
         {/* CAPTCHA Configuration */}
         <ConfigSection
-          title="CAPTCHA Keys"
-          description="Configure CAPTCHA service credentials for bot protection"
+          title={t('config.captcha.title')}
+          description={t('config.captcha.desc')}
         >
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
@@ -284,7 +285,7 @@ export default function ConfigPage() {
                   value={getCurrentValue('captchaKeys.siteKey') || ''}
                   onChange={(e) => handleConfigChange('captchaKeys.siteKey', e.target.value)}
                   className="input pr-10"
-                  placeholder="6Lc..."
+                  placeholder={t('config.placeholder.captcha_sample')}
                 />
                 <button
                   type="button"
@@ -310,7 +311,7 @@ export default function ConfigPage() {
                   value={getCurrentValue('captchaKeys.secretKey') || ''}
                   onChange={(e) => handleConfigChange('captchaKeys.secretKey', e.target.value)}
                   className="input pr-10"
-                  placeholder="6Lc..."
+                  placeholder={t('config.placeholder.captcha_sample')}
                 />
                 <button
                   type="button"
@@ -330,8 +331,8 @@ export default function ConfigPage() {
 
         {/* Proxy Configuration */}
         <ConfigSection
-          title="Proxy List"
-          description="Configure proxy servers for scraping operations (one per line)"
+          title={t('config.proxy.title')}
+          description={t('config.proxy.desc')}
         >
           <div>
             <textarea
@@ -339,7 +340,7 @@ export default function ConfigPage() {
               value={(getCurrentValue('proxyList') || []).join('\n')}
               onChange={(e) => handleConfigChange('proxyList', e.target.value.split('\n').filter(line => line.trim()))}
               className="input font-mono text-sm"
-              placeholder="http://proxy1.example.com:8080&#10;http://user:pass@proxy2.example.com:8080&#10;socks5://proxy3.example.com:1080"
+              placeholder={t('config.placeholder.proxy_list_example')}
             />
             <p className="mt-2 text-sm text-[var(--color-text-muted)]">
               Supported formats: HTTP, HTTPS, SOCKS4, SOCKS5. Include credentials if required.

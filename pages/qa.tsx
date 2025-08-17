@@ -12,6 +12,8 @@ import { qaAPI } from '../src/services/api';
 import { Lead, QAStatus } from '../src/types';
 import { clsx } from 'clsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { t } from '../src/i18n';
+import { useRef } from 'react';
 
 interface QANoteModalProps {
   isOpen: boolean;
@@ -69,16 +71,16 @@ const QANoteModal: React.FC<QANoteModalProps> = ({ isOpen, onClose, lead, onSave
                 onChange={(e) => setNotes(e.target.value)}
                 rows={6}
                 className="input"
-                placeholder="Add your QA review notes here..."
+                placeholder={t('qa.notes.placeholder')}
               />
             </div>
           </div>
           <div className="card-footer bg-[var(--color-bg-subtle)] flex justify-end space-x-3">
             <button onClick={onClose} className="btn btn-secondary">
-              Cancel
+              {t('actions.cancel')}
             </button>
             <button onClick={handleSave} className="btn btn-primary">
-              Save Notes
+              {t('actions.save')}
             </button>
           </div>
         </div>
@@ -319,6 +321,10 @@ export default function QAQueue() {
   };
 
   const [pendingBulkApprove, setPendingBulkApprove] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState<number | 'bulk' | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const rejectInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const confirmBulkApprove = async () => {
     try {
@@ -335,16 +341,37 @@ export default function QAQueue() {
   const cancelBulkApprove = () => setPendingBulkApprove(false);
 
   const handleBulkReject = async () => {
-    const reason = prompt('Enter rejection reason:');
-    if (!reason) return;
+    // open reject modal for bulk
+    setRejectTarget('bulk');
+    setRejectReason('');
+    setRejectModalOpen(true);
+  };
 
+  const confirmReject = async () => {
+    if (!rejectReason || rejectReason.trim() === '') return;
     try {
-      await Promise.all(selectedLeads.map(id => qaAPI.rejectLead(id, reason)));
-      setLeads(prev => prev.filter(lead => !selectedLeads.includes(lead.id)));
-      setSelectedLeads([]);
+      if (rejectTarget === 'bulk') {
+        await Promise.all(selectedLeads.map(id => qaAPI.rejectLead(id, rejectReason)));
+        setLeads(prev => prev.filter(lead => !selectedLeads.includes(lead.id)));
+        setSelectedLeads([]);
+      } else if (typeof rejectTarget === 'number') {
+        await qaAPI.rejectLead(rejectTarget, rejectReason);
+        setLeads(prev => prev.filter(lead => lead.id !== rejectTarget));
+        setSelectedLeads(prev => prev.filter(id => id !== rejectTarget));
+      }
     } catch (error) {
-      console.error('Failed to bulk reject:', error);
+      console.error('Failed to reject:', error);
+    } finally {
+      setRejectModalOpen(false);
+      setRejectTarget(null);
+      setRejectReason('');
     }
+  };
+
+  const cancelReject = () => {
+    setRejectModalOpen(false);
+    setRejectTarget(null);
+    setRejectReason('');
   };
 
   const handleSaveNotes = async (leadId: number, notes: string) => {
@@ -403,10 +430,10 @@ export default function QAQueue() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-              QA Queue
+              {t('qa.title')}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Review and approve leads from the pipeline
+              {t('qa.subtitle')}
             </p>
           </div>
           <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
@@ -414,11 +441,11 @@ export default function QAQueue() {
               <>
                 <button onClick={handleBulkApprove} className="btn btn-success btn-sm">
                   <CheckIcon className="h-4 w-4 mr-2" />
-                  Approve ({selectedLeads.length})
+                  {t('qa.actions.approve_selected', { n: selectedLeads.length })}
                 </button>
                 <button onClick={handleBulkReject} className="btn btn-danger btn-sm">
                   <XMarkIcon className="h-4 w-4 mr-2" />
-                  Reject Selected
+                  {t('qa.actions.reject_selected')}
                 </button>
               </>
             )}
@@ -430,7 +457,7 @@ export default function QAQueue() {
           <div className="card-body">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Sample Size</label>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('qa.controls.sample_size')}</label>
                 <div className="mt-1 flex items-center space-x-2">
                   <input
                     type="range"
@@ -445,11 +472,11 @@ export default function QAQueue() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-muted)]">Search</label>
+                <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('qa.controls.search_label')}</label>
                 <div className="mt-1 relative">
                   <input
                     type="text"
-                    placeholder="Search leads..."
+                    placeholder={t('qa.controls.search_placeholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="input pl-10"
@@ -463,7 +490,7 @@ export default function QAQueue() {
                   className="btn btn-primary w-full"
                 >
                   <AdjustmentsHorizontalIcon className="h-4 w-4 mr-2" />
-                  Refresh Queue
+                  {t('qa.controls.refresh')}
                 </button>
               </div>
             </div>
@@ -533,11 +560,12 @@ export default function QAQueue() {
                       </button>
                       <button
                         onClick={() => {
-                          const reason = prompt('Enter rejection reason:');
-                          if (reason) handleRejectLead(lead.id, reason);
+                          setRejectTarget(lead.id);
+                          setRejectReason('');
+                          setRejectModalOpen(true);
                         }}
                         className="text-[var(--color-danger-600)] hover:text-[var(--color-danger-700)]"
-                        title="Reject"
+                        title={t('qa.actions.reject')}
                       >
                         <XMarkIcon className="h-4 w-4" />
                       </button>
@@ -567,9 +595,9 @@ export default function QAQueue() {
           <div className="text-center py-12 card">
             <div className="card-body">
               <CheckIcon className="mx-auto h-12 w-12 text-[var(--color-text-subtle)]" />
-              <h3 className="mt-2 text-sm font-medium text-[var(--color-text)]">No leads in queue</h3>
+              <h3 className="mt-2 text-sm font-medium text-[var(--color-text)]">{t('qa.empty.title')}</h3>
               <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                All leads have been reviewed or no leads match your current sample size.
+                {t('qa.empty.description')}
               </p>
             </div>
           </div>
@@ -584,14 +612,14 @@ export default function QAQueue() {
                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                 className="btn btn-secondary btn-sm"
               >
-                Previous
+                {t('pagination.prev')}
               </button>
               <button
                 disabled={pagination.page >= pagination.totalPages}
                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                 className="btn btn-secondary btn-sm"
               >
-                Next
+                {t('pagination.next')}
               </button>
             </div>
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
@@ -617,14 +645,14 @@ export default function QAQueue() {
                     onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                     className="btn btn-secondary btn-sm rounded-l-md"
                   >
-                    Previous
+                    {t('pagination.prev')}
                   </button>
                   <button
                     disabled={pagination.page >= pagination.totalPages}
                     onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                     className="btn btn-secondary btn-sm rounded-r-md"
                   >
-                    Next
+                    {t('pagination.next')}
                   </button>
                 </nav>
               </div>
@@ -645,11 +673,35 @@ export default function QAQueue() {
           onClose={() => setShowDetailModal(null)}
           lead={showDetailModal}
         />
+        {/* Reject Reason Modal */}
+        {rejectModalOpen && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center p-4">
+              <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={cancelReject} aria-hidden="true"></div>
+              <div className="relative card w-full max-w-md">
+                <div className="card-header">
+                  <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">{t('qa.reject_modal.title')}</h3>
+                </div>
+                <div className="card-body">
+                  <p className="text-sm text-[var(--color-text-muted)]">{t('qa.reject_modal.desc')}</p>
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('qa.reject_modal.reason_label')}</label>
+                    <textarea ref={rejectInputRef} value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={4} className="input mt-1 w-full" placeholder={t('qa.reject_modal.reason_placeholder')} />
+                  </div>
+                </div>
+                <div className="card-footer bg-[var(--color-bg-subtle)] flex justify-end space-x-3">
+                  <button className="btn btn-secondary" onClick={cancelReject}>{t('actions.cancel')}</button>
+                  <button className="btn btn-danger" onClick={confirmReject} disabled={!rejectReason.trim()}>{t('qa.reject_modal.confirm')}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <ConfirmDialog
         open={pendingBulkApprove}
-        title="Confirm"
-        message={`Are you sure you want to approve ${selectedLeads.length} leads?`}
+        title={t('confirm.confirm')}
+        message={t('qa.confirm.bulk_approve', { n: selectedLeads.length })}
         onConfirm={confirmBulkApprove}
         onCancel={cancelBulkApprove}
       />

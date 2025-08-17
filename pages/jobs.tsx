@@ -138,15 +138,32 @@ export default function JobsPage() {
   const cancelDelete = () => setPendingDelete(null);
 
   const handleCloneJob = async (job: ScrapingJob) => {
-    const newName = prompt('Enter name for cloned job:', `${job.name} (Copy)`);
-    if (!newName) return;
+    setCloneTarget(job);
+  };
 
+  const [cloneTarget, setCloneTarget] = useState<ScrapingJob | null>(null);
+  const [cloneName, setCloneName] = useState('');
+
+  useEffect(() => {
+    if (cloneTarget) setCloneName(`${cloneTarget.name} (Copy)`);
+  }, [cloneTarget]);
+
+  const confirmClone = async () => {
+    if (!cloneTarget || !cloneName.trim()) return;
     try {
-      const clonedJob = await jobsAPI.cloneJob(job.id, newName);
+      const clonedJob = await jobsAPI.cloneJob(cloneTarget.id, cloneName.trim());
       setJobs(prev => [...prev, clonedJob]);
     } catch (error) {
       console.error('Failed to clone job:', error);
+    } finally {
+      setCloneTarget(null);
+      setCloneName('');
     }
+  };
+
+  const cancelClone = () => {
+    setCloneTarget(null);
+    setCloneName('');
   };
 
   const getStatusBadge = (status: JobStatus) => {
@@ -186,10 +203,10 @@ export default function JobsPage() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-              Scraping Jobs
+              {t('jobs.title')}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Manage and monitor your scraping workflows
+              {t('jobs.manage_header')}
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -198,7 +215,7 @@ export default function JobsPage() {
               className="btn btn-primary"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Create New Job
+              {t('jobs.create')}
             </button>
           </div>
         </div>
@@ -212,10 +229,10 @@ export default function JobsPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-medium text-[var(--color-text)] truncate">{job.name}</h3>
                     <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                      Source: <span className="font-medium text-[var(--color-text)]">{job.source.replace(/_/g, ' ')}</span>
+                      {t('jobs.field.source')}: <span className="font-medium text-[var(--color-text)]">{job.source.replace(/_/g, ' ')}</span>
                     </p>
                     <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                      Schedule: <span className="font-mono text-xs text-[var(--color-text)] bg-[var(--color-bg-subtle)] px-1 py-0.5 rounded">{job.cron}</span>
+                      {t('jobs.field.schedule')}: <span className="font-mono text-xs text-[var(--color-text)] bg-[var(--color-bg-subtle)] px-1 py-0.5 rounded">{job.cron}</span>
                     </p>
                   </div>
                   <div className="ml-4 flex-shrink-0">
@@ -226,10 +243,10 @@ export default function JobsPage() {
                 <div className="mt-4">
                   <div className="flex items-center text-sm text-[var(--color-text-muted)]">
                     <ClockIcon className="h-4 w-4 mr-1.5" />
-                    <span>Concurrency: {job.concurrency}</span>
+                    <span>{t('jobs.field.concurrency')}: {job.concurrency}</span>
                   </div>
                   <div className="mt-2 text-sm text-[var(--color-text-muted)]">
-                    Last updated: {new Date(job.updatedAt).toLocaleString()}
+                    {t('jobs.last_updated')}: {new Date(job.updatedAt).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -241,14 +258,16 @@ export default function JobsPage() {
                         <button
                           onClick={() => handlePauseJob(job.id)}
                           className="btn btn-warning btn-sm"
-                          title="Pause job"
+                          title={t('jobs.tooltip.pause')}
+                          aria-label={t('jobs.tooltip.pause')}
                         >
                           <PauseIcon className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleStopJob(job.id)}
                           className="btn btn-danger btn-sm"
-                          title="Stop job"
+                          title={t('jobs.tooltip.stop')}
+                          aria-label={t('jobs.tooltip.stop')}
                         >
                           <StopIcon className="h-4 w-4" />
                         </button>
@@ -257,7 +276,8 @@ export default function JobsPage() {
                       <button
                         onClick={() => handleStartJob(job.id)}
                         className="btn btn-success btn-sm"
-                        title="Start job"
+                        title={t('jobs.tooltip.start')}
+                        aria-label={t('jobs.tooltip.start')}
                       >
                         <PlayIcon className="h-4 w-4" />
                       </button>
@@ -265,7 +285,8 @@ export default function JobsPage() {
                     <button
                       onClick={() => setShowLogs({ jobId: job.id, jobName: job.name })}
                       className="btn btn-secondary btn-sm"
-                      title="View logs"
+                      title={t('jobs.tooltip.view_logs')}
+                      aria-label={t('jobs.tooltip.view_logs')}
                     >
                       <EyeIcon className="h-4 w-4" />
                     </button>
@@ -275,21 +296,24 @@ export default function JobsPage() {
                     <button
                       onClick={() => { setEditingJob(job); setShowJobForm(true); }}
                       className="btn btn-secondary btn-sm"
-                      title="Edit job"
+                      title={t('jobs.tooltip.edit')}
+                      aria-label={t('jobs.tooltip.edit')}
                     >
                       <CogIcon className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleCloneJob(job)}
                       className="btn btn-secondary btn-sm"
-                      title="Clone job"
+                      title={t('jobs.tooltip.clone')}
+                      aria-label={t('jobs.tooltip.clone')}
                     >
                       <DocumentDuplicateIcon className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteJob(job.id)}
                       className="btn btn-danger btn-sm"
-                      title="Delete job"
+                      title={t('jobs.tooltip.delete')}
+                      aria-label={t('jobs.tooltip.delete')}
                     >
                       <TrashIcon className="h-4 w-4" />
                     </button>
@@ -303,15 +327,15 @@ export default function JobsPage() {
           <div className="text-center py-12 card">
             <div className="card-body">
               <BriefcaseIcon className="mx-auto h-12 w-12 text-[var(--color-text-subtle)]" />
-              <h3 className="mt-2 text-sm font-medium text-[var(--color-text)]">No jobs found</h3>
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">Get started by creating a new scraping job.</p>
+        <h3 className="mt-2 text-sm font-medium text-[var(--color-text)]">{t('jobs.no_jobs')}</h3>
+        <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('jobs.empty.description')}</p>
               <div className="mt-6">
                 <button
                   onClick={() => { setEditingJob(null); setShowJobForm(true); }}
                   className="btn btn-primary"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  Create New Job
+          {t('jobs.create')}
                 </button>
               </div>
             </div>
@@ -320,8 +344,8 @@ export default function JobsPage() {
 
         <ConfirmDialog
           open={!!pendingDelete}
-          title="Confirm"
-          message={"Are you sure you want to delete this job? This action cannot be undone."}
+      title={t('confirm.confirm')}
+      message={t('jobs.confirm.delete')}
           onConfirm={confirmDeleteJob}
           onCancel={cancelDelete}
         />
@@ -342,6 +366,31 @@ export default function JobsPage() {
             concurrency: editingJob.concurrency
           } : undefined}
         />
+
+        {/* Clone Job Modal */}
+        {cloneTarget && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center p-4">
+              <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={cancelClone} aria-hidden="true"></div>
+              <div className="relative card w-full max-w-md">
+                <div className="card-header">
+                  <h3 className="text-lg leading-6 font-medium text-[var(--color-text)]">{t('jobs.clone_modal.title')}</h3>
+                </div>
+                <div className="card-body">
+                  <p className="text-sm text-[var(--color-text-muted)]">{t('jobs.clone_modal.desc')}</p>
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-[var(--color-text-muted)]">{t('jobs.clone_modal.name_label')}</label>
+                    <input value={cloneName} onChange={e => setCloneName(e.target.value)} className="input mt-1 w-full" />
+                  </div>
+                </div>
+                <div className="card-footer bg-[var(--color-bg-subtle)] flex justify-end space-x-3">
+                  <button className="btn btn-secondary" onClick={cancelClone}>{t('actions.cancel')}</button>
+                  <button className="btn btn-primary" onClick={confirmClone} disabled={!cloneName.trim()}>{t('jobs.clone_modal.confirm')}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Log Viewer Modal */}
         {showLogs && (

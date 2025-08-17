@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { t } from '../i18n';
 import { 
   PaperAirplaneIcon, 
   UserCircleIcon,
@@ -151,11 +152,11 @@ const Comments: React.FC<CommentsProps> = ({
       >
         {loading ? (
           <div className="flex justify-center items-center p-4">
-            <span className="sr-only">Loading comments</span>
+            <span className="sr-only">{t('comments.loading')}</span>
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-solid border-gray-500 border-r-transparent" />
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-sm text-gray-500 p-3">No comments yet.</p>
+          <p className="text-sm text-gray-500 p-3">{t('comments.empty')}</p>
         ) : (
           comments.map((comment) => (
             <div 
@@ -191,8 +192,8 @@ const Comments: React.FC<CommentsProps> = ({
                       <button
                         onClick={() => onDeleteComment(comment.id)}
                         className="text-gray-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 rounded-full p-1"
-                        aria-label={`Delete comment by ${comment.userName}`}
-                        title="Delete comment"
+                        aria-label={t('comments.delete_by', { user: comment.userName })}
+                        title={t('comments.delete')}
                       >
                         <TrashIcon className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -224,7 +225,7 @@ const Comments: React.FC<CommentsProps> = ({
         aria-label="Add comment"
       >
         <div className="relative">
-          <label htmlFor="comment-text" className="sr-only">Add a comment</label>
+          <label htmlFor="comment-text" className="sr-only">{t('comments.add_label')}</label>
           <textarea
             id="comment-text"
             ref={textareaRef}
@@ -235,12 +236,12 @@ const Comments: React.FC<CommentsProps> = ({
               "input w-full min-h-[80px] transition-shadow",
               "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             )}
-            placeholder="Add a comment... Use @ to mention team members"
+            placeholder={t('comments.placeholder')}
             aria-describedby="comment-instructions"
             disabled={loading}
           />
           <span id="comment-instructions" className="sr-only">
-            Use the at symbol to mention team members
+            {t('comments.instructions')}
           </span>
           
           {/* Mentions dropdown */}
@@ -274,14 +275,14 @@ const Comments: React.FC<CommentsProps> = ({
                 </button>
               ))}
               {filteredUsers.length === 0 && (
-                <div className="px-4 py-2 text-sm text-gray-500">No users found</div>
+                <div className="px-4 py-2 text-sm text-gray-500">{t('user.search.no_results')}</div>
               )}
             </div>
           )}
         </div>
         
         <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <button
+            <button
             type="button"
             className="btn btn-sm btn-secondary flex items-center w-full sm:w-auto justify-center"
             onClick={handleAddMention}
@@ -289,9 +290,9 @@ const Comments: React.FC<CommentsProps> = ({
             aria-label="Mention a team member"
           >
             <AtSymbolIcon className="h-4 w-4 mr-1" aria-hidden="true" />
-            <span>Mention</span>
+            <span>{t('comments.mention')}</span>
           </button>
-          <button
+            <button
             type="submit"
             className={clsx(
               "btn btn-sm btn-primary flex items-center w-full sm:w-auto justify-center",
@@ -302,7 +303,7 @@ const Comments: React.FC<CommentsProps> = ({
             aria-label="Send comment"
           >
             <PaperAirplaneIcon className="h-4 w-4 mr-1" aria-hidden="true" />
-            <span>Send</span>
+            <span>{t('comments.send')}</span>
           </button>
         </div>
       </form>

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 
 import AdminLayout from '../../../components/layouts/AdminLayout';
 import PageHeader from '../../../components/ui/PageHeader';
+import { t } from '../../../src/i18n';
 
 type ScraperItem = {
   title: string;
@@ -27,7 +28,7 @@ const ScraperCard: React.FC<ScraperCardProps> = ({ title, description, path, isN
       onClick={() => router.push(path)}
     >
       {isNew && (
-        <div className="absolute top-0 right-0 py-1 px-2 text-xs font-bold bg-[var(--color-bg-accent-subtle)] text-[var(--color-accent-500)]">NEW</div>
+        <div className="absolute top-0 right-0 py-1 px-2 text-xs font-bold bg-[var(--color-bg-accent-subtle)] text-[var(--color-accent-500)]">{t('scrapers.label.new')}</div>
       )}
       <div className="mb-4 text-3xl">🔎</div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
@@ -55,7 +56,7 @@ const ScrapersIndex: React.FC = () => {
 
   return (
     <AdminLayout>
-      <PageHeader title="Lead Generation Scrapers" subtitle="Configure and manage lead generation scrapers" />
+      <PageHeader title={t('scrapers.index.title')} subtitle={t('scrapers.index.subtitle')} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {scrapers.map((scraper, index) => (
@@ -64,8 +65,8 @@ const ScrapersIndex: React.FC = () => {
 
         <div className="p-5 card border-dashed cursor-pointer flex flex-col items-center justify-center opacity-70 hover:opacity-100" onClick={() => router.push('/lead-generation/scrapers/new')}>
           <div className="mb-4 text-3xl">＋</div>
-          <h3 className="text-lg font-semibold mb-2">Add New Scraper</h3>
-          <p className="text-sm text-center text-[var(--color-text-muted)]">Configure a new lead generation source</p>
+          <h3 className="text-lg font-semibold mb-2">{t('scrapers.index.add_new_title')}</h3>
+          <p className="text-sm text-center text-[var(--color-text-muted)]">{t('scrapers.index.add_new_desc')}</p>
         </div>
       </div>
     </AdminLayout>

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { CheckIcon, XMarkIcon, PhoneIcon, ArrowTopRightOnSquareIcon, EyeIcon, TagIcon } from '@heroicons/react/24/outline';
-import { Lead, QAStatus, Tag } from '../../src/types';
+import { XMarkIcon, PhoneIcon, ArrowTopRightOnSquareIcon, EyeIcon, TagIcon } from '@heroicons/react/24/outline';
+import { Lead, QAStatus, Tag } from '@/types';
+import { t } from '@/i18n';
 
 interface LeadTableProps {
   onAddTag: (leadId: number, tagId: string) => void;
@@ -37,7 +38,6 @@ const LeadTable: React.FC<LeadTableProps> = ({
   onEndReached
 }) => {
   const [editingField, setEditingField] = useState<{ id: number; field: string } | null>(null);
-  const [editValue, setEditValue] = useState('');
   const [showTagMenu, setShowTagMenu] = useState<number | null>(null);
 
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -80,18 +80,18 @@ const LeadTable: React.FC<LeadTableProps> = ({
   const getQAStatusBadge = (status?: QAStatus) => {
     switch (status) {
       case 'approved':
-        return <span className="badge badge-success">Approved</span>;
+        return <span className="badge badge-success">{t('lead.qa.approved')}</span>;
       case 'rejected':
-        return <span className="badge badge-danger">Rejected</span>;
+        return <span className="badge badge-danger">{t('lead.qa.rejected')}</span>;
       case 'needs_review':
-        return <span className="badge badge-warning">Needs Review</span>;
+        return <span className="badge badge-warning">{t('lead.qa.needs_review')}</span>;
       default:
-        return <span className="badge badge-secondary">Pending</span>;
+        return <span className="badge badge-secondary">{t('lead.qa.pending')}</span>;
     }
   };
 
   const getScoreBadge = (score?: number) => {
-    if (score === undefined || score === null) return <span className="badge badge-secondary">-</span>;
+  if (score === undefined || score === null) return <span className="badge badge-secondary">-</span>;
     const intent: 'success' | 'warning' | 'danger' = score >= 80 ? 'success' : score >= 60 ? 'warning' : 'danger';
     return <span className={`badge badge-${intent}`}>{score}</span>;
   };
@@ -118,23 +118,35 @@ const LeadTable: React.FC<LeadTableProps> = ({
                   className="input-checkbox"
                 />
               </th>
-              {['company','name','email','phone','website','source','scrapedAt','auditScore','qaStatus','leadScore'].map(col => (
-                <th key={col} className="table-header-cell cursor-pointer select-none" onClick={() => toggleSort(col)}>
+              {[
+                { key: 'company', label: t('lead.table.company') },
+                { key: 'name', label: t('lead.table.name') },
+                { key: 'email', label: t('lead.table.email') },
+                { key: 'phone', label: t('lead.table.phone') },
+                { key: 'website', label: t('lead.table.website') },
+                { key: 'source', label: t('lead.table.source') },
+                { key: 'scrapedAt', label: t('lead.table.scraped_at') },
+                { key: 'auditScore', label: t('lead.table.audit_score') },
+                { key: 'qaStatus', label: t('lead.table.qa_status') },
+                { key: 'leadScore', label: t('lead.table.lead_score') },
+              ].map(col => (
+        <th key={col.key} className="table-header-cell cursor-pointer select-none" onClick={() => toggleSort(col.key)}>
                   <div className="flex items-center gap-1">
-                    <span className="capitalize">{col.replace(/([A-Z])/g,' $1')}</span>
-                    {sort.field === col && (
+          <span className="capitalize">{col.label}</span>
+                    {sort.field === col.key && (
                       <span className="text-[10px] text-[var(--color-text-subtle)]">{sort.direction === 'asc' ? '▲' : '▼'}</span>
                     )}
                   </div>
                 </th>
               ))}
-              <th className="table-header-cell">Tags</th>
-              <th className="table-header-cell">Actions</th>
+        <th className="table-header-cell">{t('lead.labels.tags')}</th>
+        <th className="table-header-cell">{t('lead.action.actions')}</th>
             </tr>
           </thead>
           <tbody className="table-body relative" style={{ height: rowVirtualizer.getTotalSize() }}>
             {rowVirtualizer.getVirtualItems().map(vRow => {
               const lead = leads[vRow.index];
+              if (!lead) return null;
               return (
                 <tr key={lead.id} className="hover:bg-[var(--color-bg-subtle)] absolute left-0 right-0 transition-colors" style={{ transform: `translateY(${vRow.start}px)` }}>
                 <td className="table-cell">
@@ -170,7 +182,7 @@ const LeadTable: React.FC<LeadTableProps> = ({
                     <button
                       onClick={() => window.open(`tel:${lead.phone}`, '_self')}
                       className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]"
-                      title="Click to call"
+                      title={t('lead.action.call')}
                     >
                       <PhoneIcon className="h-4 w-4" />
                     </button>
@@ -182,14 +194,14 @@ const LeadTable: React.FC<LeadTableProps> = ({
                     <button
                       onClick={() => window.open(lead.website, '_blank')}
                       className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]"
-                      title="Open website"
+                      title={t('lead.action.open_website')}
                     >
                       <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                     </button>
                   </div>
                 </td>
                 <td className="table-cell">
-                  <span className="badge badge-primary">{lead.source || 'Unknown'}</span>
+                  <span className="badge badge-primary">{lead.source || t('lead.unknown_source')}</span>
                 </td>
                 <td className="table-cell">
                   <div className="text-sm text-[var(--color-text-muted)]">
@@ -220,14 +232,14 @@ const LeadTable: React.FC<LeadTableProps> = ({
                     </button>
                     {showTagMenu === lead.id && (
                       <div className="absolute mt-8 z-20 w-48 bg-[var(--color-bg-surface)] rounded-md shadow-lg py-1 ring-1 ring-[var(--color-border)]">
-                        {tags.filter(tag => !lead.tags?.some(t => t.id === tag.id)).map(tag => (
+                        {tags.filter(tag => !lead.tags?.some(existing => existing.id === tag.id)).map(tag => (
                           <button key={tag.id} className="block w-full text-left px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-bg-subtle)]" onClick={() => { onAddTag(lead.id, tag.id); setShowTagMenu(null); }}>
                             <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: tag.color }}></span>
                             {tag.name}
                           </button>
                         ))}
-                        {tags.filter(tag => !lead.tags?.some(t => t.id === tag.id)).length === 0 && (
-                          <div className="px-4 py-2 text-sm text-[var(--color-text-muted)]">All tags added</div>
+                        {tags.filter(tag => !lead.tags?.some(existing => existing.id === tag.id)).length === 0 && (
+                          <div className="px-4 py-2 text-sm text-[var(--color-text-muted)]">{t('lead.tags.all_added')}</div>
                         )}
                       </div>
                     )}
@@ -238,14 +250,14 @@ const LeadTable: React.FC<LeadTableProps> = ({
                     <button
                       onClick={() => onLeadSelect(lead)}
                       className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
-                      title="View details"
+                      title={t('lead.action.view_all')}
                     >
                       <EyeIcon className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => navigator.clipboard.writeText(lead.correlationId)}
                       className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
-                      title="Copy correlation ID"
+                      title={t('lead.action.copy_id')}
                     >
                       <span className="text-xs font-mono">ID</span>
                     </button>
@@ -273,7 +285,7 @@ const LeadTable: React.FC<LeadTableProps> = ({
         </table>
         {hasMore && (
           <div ref={endRef} className="py-4 text-center text-sm text-[var(--color-text-muted)]">
-            {loading ? 'Loading more leads…' : 'Scroll to load more'}
+            {loading ? t('leads.loading_more') : t('leads.scroll_to_load')}
           </div>
         )}
       </div>

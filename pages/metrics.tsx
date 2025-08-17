@@ -12,6 +12,7 @@ import { clsx } from 'clsx';
 import { useTheme } from '../src/design-system/ThemeProvider';
 
 import MetricsPanel from '../components/ui/MetricsPanel';
+import { t } from '../src/i18n';
 
 interface LogEntry {
   timestamp: string;
@@ -142,10 +143,10 @@ export default function MetricsPage() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
-              Metrics & Monitoring
+              {t('metrics.title')}
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              System performance, alerts, and logs
+              {t('metrics.subtitle')}
             </p>
           </div>
           <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
@@ -154,10 +155,10 @@ export default function MetricsPage() {
               onChange={(e) => setTimeRange(e.target.value)}
               className="select"
             >
-              <option value="1h">Last Hour</option>
-              <option value="6h">Last 6 Hours</option>
-              <option value="24h">Last 24 Hours</option>
-              <option value="7d">Last 7 Days</option>
+              <option value="1h">{t('metrics.time_ranges.1h')}</option>
+              <option value="6h">{t('metrics.time_ranges.6h')}</option>
+              <option value="24h">{t('metrics.time_ranges.24h')}</option>
+              <option value="7d">{t('metrics.time_ranges.7d')}</option>
             </select>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
@@ -167,10 +168,10 @@ export default function MetricsPage() {
               )}
             >
               <ArrowPathIcon className={clsx("h-4 w-4 mr-2", autoRefresh && "animate-spin")} />
-              Auto-refresh {autoRefresh ? 'On' : 'Off'}
+              {t('metrics.auto_refresh')} {autoRefresh ? t('metrics.on') : t('metrics.off')}
             </button>
             <button onClick={fetchMetrics} className="btn btn-secondary btn-sm">
-              Refresh Now
+              {t('metrics.refresh_now')}
             </button>
           </div>
         </div>
@@ -179,7 +180,7 @@ export default function MetricsPage() {
         {alerts.length > 0 && (
           <div className="card border-l-4 border-[var(--color-danger-500)]">
             <div className="card-header bg-[var(--color-danger-100)]">
-              <h3 className="text-lg leading-6 font-medium text-[var(--color-danger-800)]">Active Alerts</h3>
+              <h3 className="text-lg leading-6 font-medium text-[var(--color-danger-800)]">{t('metrics.alerts.active_title')}</h3>
             </div>
             <div className="card-body bg-[var(--color-danger-100)]">
               <div className="space-y-3">
@@ -192,7 +193,7 @@ export default function MetricsPage() {
                       <p className="text-xs text-[var(--color-text-subtle)] mt-1">{new Date(alert.timestamp).toLocaleString()}</p>
                     </div>
                     <button className="btn btn-sm btn-secondary">
-                      Acknowledge
+                      {t('metrics.alerts.acknowledge')}
                     </button>
                   </div>
                 ))}
@@ -204,7 +205,7 @@ export default function MetricsPage() {
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Scraping Metrics */}
-          <MetricsPanel title="Scrapes per Second by Source">
+          <MetricsPanel title={t('metrics.panels.scrapes_by_source')}>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={scrapingChartData}>
@@ -228,7 +229,7 @@ export default function MetricsPage() {
           </MetricsPanel>
 
           {/* Kafka Metrics */}
-          <MetricsPanel title="Kafka Consumer Lag">
+          <MetricsPanel title={t('metrics.panels.kafka_lag')}>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={kafkaLagData}>
@@ -250,7 +251,7 @@ export default function MetricsPage() {
           </MetricsPanel>
 
           {/* Error Metrics */}
-          <MetricsPanel title="HTTP Error Counts">
+          <MetricsPanel title={t('metrics.panels.http_errors')}>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={errorData}>
@@ -272,7 +273,7 @@ export default function MetricsPage() {
           </MetricsPanel>
 
           {/* System Health */}
-          <MetricsPanel title="System Health">
+          <MetricsPanel title={t('metrics.panels.system_health')}>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-[var(--color-success-100)] rounded-lg">
                 <div className="text-2xl font-bold text-[var(--color-success-600)]">99.9%</div>
@@ -295,10 +296,10 @@ export default function MetricsPage() {
         </div>
 
         {/* Logs Panel */}
-        <MetricsPanel title="Recent Logs" className="col-span-full">
+  <MetricsPanel title={t('metrics.panels.recent_logs')} className="col-span-full">
           <div className="space-y-2 max-h-96 overflow-y-auto p-1">
             {logs.length === 0 ? (
-              <div className="text-sm text-[var(--color-text-muted)] p-2">No logs available</div>
+              <div className="text-sm text-[var(--color-text-muted)] p-2">{t('metrics.no_logs')}</div>
             ) : logs.map((log, index) => (
               <div key={index} className="flex items-start space-x-3 p-3 bg-[var(--color-bg-subtle)] rounded-lg font-mono text-sm">
                 <div className="flex-shrink-0">
@@ -322,9 +323,9 @@ export default function MetricsPage() {
           </div>
           {logs.length > 0 && (
             <div className="mt-4 flex justify-between items-center text-sm text-[var(--color-text-muted)]">
-              <span>Showing last {logs.length} log entries</span>
+              <span>{t('metrics.logs.showing', { n: String(logs.length) })}</span>
               <button className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)]">
-                View all logs →
+                {t('metrics.logs.view_all')}
               </button>
             </div>
           )}
