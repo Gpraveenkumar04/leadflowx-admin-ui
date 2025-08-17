@@ -140,6 +140,15 @@ export function useLeadsData(opts: UseLeadsOptions = {}): UseLeadsReturn {
           // silent for cancellations
           return Promise.reject(e);
         }
+        if (e.response?.status === 500) {
+          toast.error('Server error occurred. Please try again later or contact support if the issue persists.');
+        } else if (e.response?.status === 400) {
+          toast.error('Invalid request. Please check your sorting and filtering options.');
+        } else if (e.code === 'ECONNABORTED') {
+          toast.error('Request timed out. Please check your connection and try again.');
+        } else {
+          toast.error('Failed to load leads. Please try again.');
+        }
         throw e;
       }
     },
@@ -148,7 +157,9 @@ export function useLeadsData(opts: UseLeadsOptions = {}): UseLeadsReturn {
     gcTime: 5 * 60_000,
     retry: (failureCount, err: any) => {
       if (err?.response?.status === 404) return false;
-      return failureCount < 2; // gentle retry
+      if (err?.response?.status === 400) return false; // Don't retry invalid requests
+      if (err?.response?.status === 500) return failureCount < 1; // Only retry server errors once
+      return failureCount < 2; // gentle retry for other errors
     }
   });
 

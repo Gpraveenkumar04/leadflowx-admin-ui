@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bars3Icon, BellIcon, UserCircleIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, BellIcon, UserCircleIcon, MoonIcon, SunIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 
 interface TopbarProps {
@@ -18,89 +18,121 @@ interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({ setSidebarOpen, currentTheme, toggleDensity, density, toggleTheme, notificationOpen, setNotificationOpen, notifications, userMenuOpen, setUserMenuOpen, routerPath }) => {
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
-    <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--toolbar-bg-translucent)] bg-[var(--color-bg-elevated)]/90 border-b border-[var(--color-border-subtle)] flex items-center h-14 sm:h-16 shadow-sm transition-colors">
-      <div className="flex-1 flex px-3 sm:px-4 items-center gap-2 justify-between">
-        <button
-          type="button"
-          className={clsx(
-            "lg:hidden p-2 radius-md",
-            currentTheme === 'dark'
-              ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-          )}
-          onClick={() => setSidebarOpen(true)}
-        >
-          <span className="sr-only">Open sidebar</span>
-          <Bars3Icon className="h-6 w-6" />
-        </button>
-
-        <nav className="hidden sm:flex items-center text-sm text-[var(--color-text-muted)]" aria-label="Breadcrumb">
-          <ol className="flex items-center gap-2">
-            <li>
-              <Link href="/dashboard" className="hover:text-[var(--color-text-primary)] font-medium">Dashboard</Link>
-            </li>
-            {routerPath !== '/dashboard' && routerPath !== '/' && (
-              <li className="flex items-center gap-2">
-                <span className="text-[var(--color-border-soft)]">/</span>
-                <span className="capitalize font-medium text-[var(--color-text-primary)]">{routerPath.split('/')[1]}</span>
-              </li>
-            )}
-          </ol>
-        </nav>
-
-        <div className="flex items-center gap-1 sm:gap-2">
-          <button
-            onClick={toggleDensity}
-            className="px-2 h-8 inline-flex items-center gap-1 text-xs font-medium radius-md border border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-bg-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]"
-            aria-label="Toggle density"
-            title={`Switch to ${density === 'comfortable' ? 'compact' : 'comfortable'} density`}
-          >
-            <span className="hidden md:inline">{density === 'comfortable' ? 'Comfort' : 'Compact'}</span>
-            <span className="md:hidden">{density === 'comfortable' ? 'C' : 'Cm'}</span>
-          </button>
-
-          <button
-            onClick={toggleTheme}
-            className="p-2 radius-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]"
-            aria-label={currentTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          >
-            {currentTheme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
-          </button>
-
-          <div className="relative">
+    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => {
-                setNotificationOpen(!notificationOpen);
-                setUserMenuOpen(false);
-              }}
-              className="p-2 rounded-md relative text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]"
+              type="button"
+              className="lg:hidden -m-2.5 p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              onClick={() => setSidebarOpen(true)}
             >
-              <BellIcon className="h-5 w-5" />
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-[var(--color-status-error)] ring-2 ring-[var(--color-bg-elevated)]" />
-              )}
+              <span className="sr-only">Open sidebar</span>
+              <Bars3Icon className="h-6 w-6" />
             </button>
 
-            {/* Notification dropdown is rendered by LayoutCore to keep stateful markup centralized. */}
+            <nav className="hidden sm:flex" aria-label="Breadcrumb">
+              <ol className="flex items-center space-x-2 text-sm font-medium">
+                <li>
+                  <Link 
+                    href="/dashboard" 
+                    className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                </li>
+                {routerPath !== '/dashboard' && routerPath !== '/' && (
+                  <>
+                    <li className="flex items-center">
+                      <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+                    </li>
+                    <li>
+                      <span className="text-gray-900 dark:text-white capitalize">
+                        {routerPath.split('/')[1].replace(/-/g, ' ')}
+                      </span>
+                    </li>
+                  </>
+                )}
+              </ol>
+            </nav>
           </div>
 
-          <div className="relative">
-            <button
-              onClick={() => {
-                setUserMenuOpen(!userMenuOpen);
-                setNotificationOpen(false);
-              }}
-              className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)]"
-            >
-              <span className="sr-only">Open user menu</span>
-                <div className={clsx(
-                "h-8 w-8 radius-full overflow-hidden flex items-center justify-center",
-                currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-              )}>
-                <UserCircleIcon className="h-7 w-7 text-gray-400" />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleDensity}
+                className={clsx(
+                  "px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all",
+                  "text-gray-700 dark:text-gray-300",
+                  "bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700/50",
+                  "border border-gray-200 dark:border-gray-700",
+                  "focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                )}
+                aria-label="Toggle density"
+                title={`Switch to ${density === 'comfortable' ? 'compact' : 'comfortable'} density`}
+              >
+                <span className="hidden md:inline">{density === 'comfortable' ? 'Comfortable' : 'Compact'}</span>
+                <span className="md:hidden">{density === 'comfortable' ? 'Cmf' : 'Cmp'}</span>
+              </button>
+
+              <button
+                onClick={toggleTheme}
+                className={clsx(
+                  "p-2 rounded-lg transition-all",
+                  "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                )}
+                aria-label={currentTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {currentTheme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
+              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setNotificationOpen(!notificationOpen);
+                    setUserMenuOpen(false);
+                  }}
+                  className={clsx(
+                    "p-2 rounded-lg transition-all",
+                    "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
+                    "hover:bg-gray-100 dark:hover:bg-gray-800",
+                    "focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  )}
+                >
+                  <span className="sr-only">View notifications</span>
+                  <BellIcon className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
+                  )}
+                </button>
               </div>
-            </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(!userMenuOpen);
+                    setNotificationOpen(false);
+                  }}
+                  className={clsx(
+                    "flex items-center gap-2 p-1.5 rounded-lg transition-all",
+                    "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
+                    "hover:bg-gray-100 dark:hover:bg-gray-800",
+                    "focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  )}
+                >
+                  <span className="sr-only">Open user menu</span>
+                  <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center ring-2 ring-white dark:ring-gray-700">
+                    <UserCircleIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <span className="hidden md:inline text-sm font-medium">Admin User</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

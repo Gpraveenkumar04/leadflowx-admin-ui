@@ -113,11 +113,11 @@ function LayoutCore({ children }: LayoutProps) {
   };
 
   return (
-    <div className={clsx('min-h-screen bg-[var(--color-bg-app)] text-[var(--color-text-primary)] antialiased')}>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 antialiased">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-gray-900 bg-opacity-75 transition-opacity lg:hidden"
+          className="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm transition-opacity lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -136,7 +136,7 @@ function LayoutCore({ children }: LayoutProps) {
       />
 
       {/* Main content area */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+      <div className="lg:pl-72 flex flex-col flex-1 min-h-screen">
         <Topbar
           setSidebarOpen={(s) => setSidebarOpen(s)}
           currentTheme={currentTheme}
@@ -151,15 +151,19 @@ function LayoutCore({ children }: LayoutProps) {
           routerPath={router.pathname}
         />
 
-        {/* Notification dropdown and user menu remain in LayoutCore to keep stateful markup centralized */}
-  <Notifications notifications={notifications} open={notificationOpen} currentTheme={currentTheme} />
-  <UserMenu open={userMenuOpen} userNavigation={userNavigation} />
+        {/* Notification dropdown and user menu */}
+        <div className="relative z-50">
+          <Notifications notifications={notifications} open={notificationOpen} currentTheme={currentTheme} />
+          <UserMenu open={userMenuOpen} userNavigation={userNavigation} />
+        </div>
 
         {/* Page content */}
-        <main className="flex-1">
-          <div className="py-6 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              {children}
+        <main className="flex-1 relative">
+          <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto">
+            <div className="relative">
+              <div className="relative space-y-6">
+                {children}
+              </div>
             </div>
           </div>
         </main>

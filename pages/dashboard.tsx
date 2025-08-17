@@ -12,11 +12,12 @@ import Layout from '../src/components/Layout';
 import { dashboardAPI } from '../src/services/api';
 import { DashboardMetrics } from '../src/types';
 import { io } from 'socket.io-client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import MetricCard from '../src/components/MetricCard';
 import { t } from '../src/i18n';
 import { useTheme } from '../src/design-system/ThemeProvider';
 import DrillDownChart from '../components/ui/DrillDownChart';
+import toast from 'react-hot-toast';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -33,52 +34,156 @@ const AccessibleButton: React.FC<{ label: string; onClick: () => void }> = ({ la
 );
 
 export default function Dashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
   const { theme } = useTheme();
+  const queryClient = useQueryClient();
+  
+  // Get environment variables and configuration
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+  const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || API_BASE_URL;
+  const HEALTH_CHECK_ENDPOINT = process.env.NEXT_PUBLIC_HEALTH_CHECK_ENDPOINT || '/api/health';
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const { 
+    data: metrics, 
+    isLoading, 
+    isError,
+    error,
+    refetch 
+  } = useQuery({
+    queryKey: ['dashboard-metrics', selectedTimeRange],
+    queryFn: async () => {
+      try {
+        // First check if the server is available
+        try {
+          const healthCheck = await fetch(`${API_BASE_URL}${HEALTH_CHECK_ENDPOINT}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            },
+            signal: AbortSignal.timeout(5000) // 5 second timeout for health check
+          });
+          
+          if (!healthCheck.ok) {
+            throw new Error('Backend service is not healthy');
+          }
+        } catch (e) {
+          if (e instanceof Error && e.name === 'AbortError') {
+            throw new Error('Health check timed out. Please check if the backend service is responding.');
+          }
+          throw new Error('Backend server is not available. Please ensure the server is running.');
+        }
+        
+        return await dashboardAPI.getMetrics();
+      } catch (err: any) {
+        const message = err.message || 
+          (err.response?.status === 404 ? 'API endpoint not found' :
+          err.code === 'ECONNABORTED' ? 'Request timed out' :
+          'Failed to load dashboard data');
+        
+        toast.error(message);
+        throw err;
+      }
+    },
+    retry: (failureCount, error: any) => {
+      // Don't retry if server is down or health check failed
+      if (error.message?.includes('not available') || 
+          error.message?.includes('not healthy') ||
+          error.message?.includes('timed out')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchInterval: (data) => data ? 60000 : false, // Only refetch if we have data
+    refetchOnWindowFocus: true
+  });
 
   const tickColor = theme === 'dark' ? '#94a3b8' : '#6b7280';
   const gridColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
-  // Optional socket connection for real-time updates
-  let socket: ReturnType<typeof io> | undefined;
-  try {
-    socket = io('http://localhost:8080', { 
-      reconnectionAttempts: 3,
-      timeout: 5000,
-      autoConnect: false 
+  // Socket connection for real-time updates (optional feature)
+  const [socketError, setSocketError] = useState<string>();
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  useEffect(() => {
+    // Skip socket connection if we can't reach the server
+    const checkServer = async () => {
+      try {
+        // Try the health check endpoint
+        const response = await fetch(`${API_BASE_URL}${HEALTH_CHECK_ENDPOINT}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          // Short timeout for health check
+          signal: AbortSignal.timeout(3000)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Health check failed with status: ${response.status}`);
+        }
+        
+        return true;
+      } catch (error) {
+        console.log('Health check failed:', error);
+        return false;
+      }
+    };
+
+    let socket: ReturnType<typeof io> | undefined;
+
+    checkServer().then(isServerAvailable => {
+      if (!isServerAvailable) {
+        setSocketError('Real-time updates unavailable - backend server is not running');
+        return;
+      }
+
+      try {
+              socket = io(SOCKET_URL, {  
+          reconnectionAttempts: 2,
+          timeout: 5000,
+          autoConnect: false,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000
+        });
+
+        socket.on('connect', () => {
+          setSocketError(undefined);
+          setSocketConnected(true);
+          console.log('Socket connected successfully');
+        });
+
+        socket.on('disconnect', () => {
+          setSocketConnected(false);
+          console.log('Socket disconnected');
+        });
+
+        socket.on('connect_error', (error) => {
+          setSocketConnected(false);
+          setSocketError('Real-time updates temporarily unavailable');
+          console.log('Socket connection error:', error);
+        });
+
+        socket.on('dashboardMetrics', (data: DashboardMetrics) => {
+          queryClient.setQueryData(['dashboard-metrics', selectedTimeRange], data);
+        });
+
+        socket.connect();
+      } catch (error) {
+        console.log('Failed to initialize socket:', error);
+        setSocketError('Real-time updates unavailable');
+      }
     });
-    socket.connect();
-  } catch {}
 
-  useEffect(() => {
-    if (socket) {
-      socket.on('dashboardMetrics', (data: any) => {
-        setMetrics(data);
-      });
-
-      return () => {
+    return () => {
+      if (socket) {
         socket.disconnect();
-      };
-    }
-  }, []);
+      }
+    };
+  }, [API_BASE_URL, queryClient, selectedTimeRange]);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [selectedTimeRange]);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-  const data = await dashboardAPI.getMetrics();
-  setMetrics(data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="animate-pulse">
@@ -96,11 +201,40 @@ export default function Dashboard() {
     );
   }
 
+  if (isError) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <p className="text-[var(--color-text-muted)] mb-4">
+            {error instanceof Error 
+              ? error.message 
+              : 'Failed to load dashboard data'}
+          </p>
+          {/* Only show retry button if it's not a server availability issue */}
+          {!(error instanceof Error && error.message.includes('not available')) && (
+            <button 
+              onClick={() => refetch()} 
+              className="btn btn-primary"
+              aria-label="Retry loading dashboard"
+            >
+              Retry
+            </button>
+          )}
+          <p className="text-sm text-[var(--color-text-muted)] mt-4">
+            {error instanceof Error && error.message.includes('not available')
+              ? 'Please start the backend server and refresh the page.'
+              : 'If the problem persists, please contact support.'}
+          </p>
+        </div>
+      </Layout>
+    );
+  }
+  
   if (!metrics) {
     return (
       <Layout>
         <div className="text-center py-12">
-          <p className="text-[var(--color-text-muted)]">Failed to load dashboard data</p>
+          <p className="text-[var(--color-text-muted)]">No dashboard data available</p>
         </div>
       </Layout>
     );
@@ -124,9 +258,21 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold leading-7 text-[var(--color-text)] sm:text-3xl sm:truncate">
               {t('dashboard.title')}
             </h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              {t('dashboard.subtitle')}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                {t('dashboard.subtitle')}
+              </p>
+              {socketConnected && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                  Live
+                </span>
+              )}
+              {socketError && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                  {socketError}
+                </span>
+              )}
+            </div>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
             <select 

@@ -16,7 +16,7 @@ import {
   AuditEntry
 } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -24,6 +24,10 @@ const apiClient = axios.create({
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+  },
+  validateStatus: (status) => {
+    // Consider only 2xx status codes as successful
+    return status >= 200 && status < 300;
   },
 });
 
@@ -45,11 +49,42 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Redirect to login or refresh token
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+    // Check if the error has a response
+    if (error.response) {
+      // Handle different HTTP error codes
+      switch (error.response.status) {
+        case 401:
+          // Unauthorized - clear token and redirect to login
+          localStorage.removeItem('auth_token');
+          window.location.href = '/login';
+          break;
+        case 403:
+          // Forbidden - user doesn't have necessary permissions
+          console.error('Access forbidden:', error.response.data);
+          break;
+        case 429:
+          // Too Many Requests - implement exponential backoff
+          console.error('Rate limited. Please try again later.');
+          break;
+      }
+
+      // Add request details to error for better debugging
+      const requestInfo = {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      };
+      console.error('API Request failed:', requestInfo);
+    } else if (error.request) {
+      // Request was made but no response received
+      console.error('No response received:', error.request);
+    } else {
+      // Error in setting up the request
+      console.error('Error setting up request:', error.message);
     }
+
     return Promise.reject(error);
   }
 );
@@ -57,28 +92,76 @@ apiClient.interceptors.response.use(
 // Dashboard API
 export const dashboardAPI = {
   async getMetrics(): Promise<DashboardMetrics> {
-    const response = await apiClient.get<ApiResponse<DashboardMetrics>>('/api/dashboard/metrics');
-    return response.data.data!;
+    try {
+      const response = await apiClient.get<ApiResponse<DashboardMetrics>>('/api/dashboard/metrics', {
+        timeout: 15000, // Shorter timeout for dashboard metrics
+        retries: 2 // Allow 2 retries for metrics
+      });
+      return response.data.data!;
+    } catch (error: any) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Dashboard metrics request timed out. Please check your connection.');
+      } else if (!error.response) {
+        throw new Error('Network error occurred while fetching dashboard metrics. Please check your connection.');
+      }
+      throw error;
+    }
   },
 
   async getTotalRawLeads(): Promise<number> {
-    const response = await apiClient.get<ApiResponse<{ count: number }>>('/api/leads/raw/count');
-    return response.data.data!.count;
+    try {
+      const response = await apiClient.get<ApiResponse<{ count: number }>>('/api/leads/raw/count', {
+        timeout: 10000
+      });
+      return response.data.data!.count;
+    } catch (error: any) {
+      if (!error.response) {
+        throw new Error('Network error occurred while fetching lead count. Please try again.');
+      }
+      throw error;
+    }
   },
 
   async getLeadsBySource(): Promise<{ source: string; count: number; }[]> {
-    const response = await apiClient.get<ApiResponse<{ source: string; count: number; }[]>>('/api/leads/by-source');
-    return response.data.data!;
+    try {
+      const response = await apiClient.get<ApiResponse<{ source: string; count: number; }[]>>('/api/leads/by-source', {
+        timeout: 10000
+      });
+      return response.data.data!;
+    } catch (error: any) {
+      if (!error.response) {
+        throw new Error('Network error occurred while fetching leads by source. Please try again.');
+      }
+      throw error;
+    }
   },
 
   async getStatusFunnel(): Promise<any> {
-    const response = await apiClient.get<ApiResponse<any>>('/api/leads/status-funnel');
-    return response.data.data!;
+    try {
+      const response = await apiClient.get<ApiResponse<any>>('/api/leads/status-funnel', {
+        timeout: 10000
+      });
+      return response.data.data!;
+    } catch (error: any) {
+      if (!error.response) {
+        throw new Error('Network error occurred while fetching status funnel. Please try again.');
+      }
+      throw error;
+    }
   },
 
   async getSLAMetrics(): Promise<any> {
-    const response = await apiClient.get<ApiResponse<any>>('/api/metrics/sla');
-    return response.data.data!;
+    try {
+      const response = await apiClient.get<ApiResponse<any>>('/api/metrics/sla', {
+        timeout: 10000
+      });
+      return response.data.data!;
+    } catch (error: any) {
+      if (!error.response) {
+        throw new Error('Network error occurred while fetching SLA metrics. Please try again.');
+      }
+      throw error;
+    }
   }
   
 };
@@ -92,30 +175,52 @@ export const leadsAPI = {
     sort?: TableSort,
     signal?: AbortSignal
   ): Promise<PaginatedResponse<Lead>> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-    });
-
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          if (Array.isArray(value)) {
-            value.forEach(v => params.append(key, v));
-          } else {
-            params.append(key, value.toString());
-          }
-        }
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
       });
-    }
 
-    if (sort) {
-      params.append('sortField', sort.field);
-      params.append('sortDirection', sort.direction);
-    }
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            if (Array.isArray(value)) {
+              value.forEach(v => params.append(key, v));
+            } else {
+              params.append(key, value.toString());
+            }
+          }
+        });
+      }
 
-  const response = await apiClient.get<PaginatedResponse<Lead>>(`/api/leads?${params.toString()}`,{ signal });
-    return response.data;
+      if (sort) {
+        params.append('sortField', sort.field);
+        params.append('sortDirection', sort.direction);
+      }
+
+      const response = await apiClient.get<PaginatedResponse<Lead>>(`/api/leads?${params.toString()}`, { 
+        signal,
+        timeout: 60000 // Increase timeout for sorting operations
+      });
+      
+      if (!response.data || !response.data.data) {
+        throw new Error('Invalid response format from server');
+      }
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 500) {
+        console.error('Server error when fetching leads:', error.response?.data);
+        throw new Error('Server error while fetching leads. Please try again.');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timed out. Please try again.');
+      } else if (signal?.aborted) {
+        throw new Error('Request was cancelled.');
+      } else {
+        console.error('Error fetching leads:', error);
+        throw new Error('Failed to fetch leads. Please check your connection and try again.');
+      }
+    }
   },
 
   async getLead(id: number): Promise<Lead> {

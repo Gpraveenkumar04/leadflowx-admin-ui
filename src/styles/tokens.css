@@ -1,0 +1,35 @@
+:root {
+  /* Brand Colors */
+  --brand: 99 102 241; /* Indigo 500 */
+  --brand-hover: 79 70 229; /* Indigo 600 */
+  --brand-muted: 165 180 252; /* Indigo 300 */
+  --brand-contrast: 255 255 255;
+
+  /* Surface Colors */
+  --surface: 255 255 255;
+  --surface-hover: 248 250 252;
+  --surface-muted: 241 245 249;
+
+  /* Text Colors - Light Mode */
+  --text-primary: 15 23 42;
+  --text-secondary: 71 85 105;
+  --text-muted: 148 163 184;
+}
+
+[data-theme="dark"] {
+  /* Brand Colors - Dark Mode */
+  --brand: 129 140 248; /* Indigo 400 */
+  --brand-hover: 99 102 241; /* Indigo 500 */
+  --brand-muted: 67 56 202; /* Indigo 700 */
+  --brand-contrast: 255 255 255;
+
+  /* Surface Colors - Dark Mode */
+  --surface: 15 23 42;
+  --surface-hover: 30 41 59;
+  --surface-muted: 51 65 85;
+
+  /* Text Colors - Dark Mode */
+  --text-primary: 248 250 252;
+  --text-secondary: 226 232 240;
+  --text-muted: 148 163 184;
+}
