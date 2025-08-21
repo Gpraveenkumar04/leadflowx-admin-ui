@@ -1,27 +1,9 @@
 import React from 'react';
-import { z } from 'zod';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { DataSource, DATA_SOURCES } from '@/types';
+import { DATA_SOURCES } from '@/types';
 import { t } from '../../src/i18n';
-import { Modal, Form, FormInput, FormSelect, FormTextarea, createFormSchema } from '@/design-system/components';
-
-// Form Schema
-const jobFormSchema = createFormSchema(z.object({
-  name: z.string().min(1, 'Job name is required').max(100, 'Job name must be less than 100 characters'),
-  source: z.enum(['google_maps', 'linkedin', 'yelp', 'facebook'] as const),
-  filters: z.string().refine((val) => {
-    try {
-      JSON.parse(val);
-      return true;
-    } catch {
-      return false;
-    }
-  }, 'Filters must be valid JSON'),
-  cron: z.string().min(1, 'Cron expression is required'),
-  concurrency: z.number().min(1, 'Concurrency must be at least 1').max(20, 'Concurrency must be at most 20'),
-}));
-
-type JobFormData = z.infer<typeof jobFormSchema>;
+import { jobSchema } from '@/lib/schemas';
+import { useZodForm, FormField, Input, Select, Textarea } from '@/components/ui/Form/Form';
 
 interface JobFormProps {
   isOpen: boolean;
@@ -32,100 +14,168 @@ interface JobFormProps {
 }
 
 export default function JobForm({ isOpen, onClose, onSubmit, initialData, loading = false }: JobFormProps) {
-  const defaultValues: JobFormData = {
-    name: initialData?.name || '',
-    source: initialData?.source || 'google_maps',
-    filters: initialData?.filters || JSON.stringify({
-      category: 'restaurant',
-      location: 'New York',
-      radius: 5000
-    }, null, 2),
-    cron: initialData?.cron || '0 */2 * * *',
-    concurrency: initialData?.concurrency || 5,
-  };
+  const form = useZodForm(jobSchema, {
+    defaultValues: {
+      name: initialData?.name || '',
+      type: initialData?.type || 'scraping',
+      schedule: initialData?.schedule || '0 */2 * * *',
+      active: initialData?.active ?? true,
+      priority: initialData?.priority || 3,
+      config: initialData?.config || {
+        source: 'google_maps',
+        filters: {
+          category: 'restaurant',
+          location: 'New York',
+          radius: 5000
+        }
+      }
+    }
+  });
 
-  const sourceOptions = DATA_SOURCES.map(src => ({
-    value: src,
-    label: src.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  }));
-
-  const handleSubmit = (data: JobFormData) => {
+  const onFormSubmit = form.handleSubmit((data) => {
     onSubmit(data);
     onClose();
-  };
+  });
 
   return (
-    <Modal open={isOpen} onClose={onClose} size="lg">
-      <div className="card">
-        <div className="card-header flex items-center justify-between">
-          <h3 className="text-lg font-medium text-[var(--color-text)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
             {initialData ? 'Edit Job' : 'Create Job'}
           </h3>
-          <button 
-            onClick={onClose} 
-            className="text-[var(--color-text-subtle)] hover:text-[var(--color-text)]"
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
-        <div className="card-body">
-          <Form
-            schema={jobFormSchema}
-            defaultValues={defaultValues}
-            onSubmit={handleSubmit}
-            submitLabel={initialData ? 'Update Job' : 'Create Job'}
-            loading={loading}
+        <form onSubmit={onFormSubmit} className="mt-4 space-y-6">
+          <FormField
+            label="Job Name"
+            error={form.formState.errors.name?.message}
+            required
           >
-            <FormInput
-              name="name"
-              label="Job Name"
-              description="A descriptive name for this scraping job"
-              required
+            <Input
+              {...form.register('name')}
               placeholder="e.g., NYC Restaurants Scraper"
+              error={!!form.formState.errors.name}
             />
+          </FormField>
 
-            <FormSelect
-              name="source"
-              label="Data Source"
-              description="Select the platform to scrape data from"
-              required
-              options={sourceOptions}
-            />
+          <FormField
+            label="Job Type"
+            error={form.formState.errors.type?.message}
+            required
+          >
+            <Select
+              {...form.register('type')}
+              error={!!form.formState.errors.type}
+            >
+              <option value="scraping">Scraping</option>
+              <option value="processing">Processing</option>
+              <option value="scoring">Scoring</option>
+            </Select>
+          </FormField>
 
-            <FormTextarea
-              name="filters"
-              label="Filters (JSON)"
-              description="Define search criteria and filters in JSON format"
-              required
-              placeholder={`{
-  "category": "restaurant",
-  "location": "New York",
-  "radius": 5000
-}`}
-              rows={8}
-            />
-
-            <FormInput
-              name="cron"
-              label="Schedule (Cron Expression)"
-              description="Define when this job should run using cron syntax"
-              required
+          <FormField
+            label="Schedule"
+            error={form.formState.errors.schedule?.message}
+            description="Cron expression for job scheduling"
+            required
+          >
+            <Input
+              {...form.register('schedule')}
               placeholder="0 */2 * * *"
+              error={!!form.formState.errors.schedule}
             />
+          </FormField>
 
-            <FormInput
-              name="concurrency"
-              label="Concurrency"
-              description="Number of parallel workers (1-20)"
-              required
-              type="number"
-              min={1}
-              max={20}
+          <FormField
+            label="Priority"
+            error={form.formState.errors.priority?.message}
+            description="Job priority (1-5, higher is more important)"
+          >
+            <Select
+              {...form.register('priority', { valueAsNumber: true })}
+              error={!!form.formState.errors.priority}
+            >
+              {[1, 2, 3, 4, 5].map(p => (
+                <option key={p} value={p}>
+                  {p} - {p === 1 ? 'Lowest' : p === 5 ? 'Highest' : 'Normal'}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+
+          <FormField
+            label="Configuration"
+            error={form.formState.errors.config?.message}
+            description="Job-specific configuration in JSON format"
+          >
+            <Textarea
+              {...form.register('config')}
+              rows={8}
+              placeholder={JSON.stringify({
+                source: 'google_maps',
+                filters: {
+                  category: 'restaurant',
+                  location: 'New York',
+                  radius: 5000
+                }
+              }, null, 2)}
+              error={!!form.formState.errors.config}
+              className="font-mono"
             />
-          </Form>
-        </div>
+          </FormField>
+
+          <div className="flex items-center justify-end space-x-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-secondary"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="mr-2 h-4 w-4 animate-spin"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  {initialData ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>{initialData ? 'Update Job' : 'Create Job'}</>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
-    </Modal>
+    </div>
   );
 }
