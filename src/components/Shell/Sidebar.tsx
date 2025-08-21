@@ -49,20 +49,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           'fixed inset-0 z-40 flex transform transition-transform duration-300 ease-in-out',
           'translate-x-0'
         )}>
-          <div className="relative flex w-full max-w-xs flex-1 flex-col bg-white dark:bg-gray-900 shadow-xl">
+          <div className="relative flex w-full max-w-xs flex-1 flex-col bg-[var(--color-bg-surface)] shadow-xl border-r border-[var(--color-border)]">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-between px-4 h-16 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 text-white font-semibold text-lg">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary-600)] text-white font-semibold text-lg">
                   L
                 </div>
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                <span className="text-lg font-semibold text-[var(--color-text)]">
                   LeadFlowX
                 </span>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                className="p-2.5 text-[var(--color-text)] hover:text-[var(--color-text)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-primary-500)_40%,transparent)]"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -76,10 +76,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   type="text"
                   className={clsx(
                     'w-full rounded-lg pl-10 pr-4 py-2 text-sm',
-                    'bg-gray-50 dark:bg-gray-800',
-                    'border border-gray-200 dark:border-gray-700',
-                    'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500/20'
+                    'bg-[var(--color-bg-subtle)]',
+                    'border border-[var(--color-border)]',
+                    'text-[var(--color-text)] placeholder-[var(--color-text-subtle)]',
+                    'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-primary-500)_40%,transparent)]'
                   )}
                   placeholder={t('shell.search.short')}
                   value={searchQuery}
@@ -98,30 +98,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => toggleMenu(item.name)}
                         className={clsx(
                           'w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200',
-                          'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white',
-                          'hover:bg-gray-100 dark:hover:bg-gray-800',
-                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20'
+                          'text-[var(--color-text)] hover:text-[var(--color-text)]',
+                          'hover:bg-[var(--color-bg-subtle)]',
+                          'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-primary-500)_40%,transparent)]'
                         )}
                         aria-expanded={expandedMenus.includes(item.name)}
                       >
                         <span className="flex items-center gap-3">
-                          <item.icon className="h-5 w-5 text-gray-400 dark:text-gray-500 group-hover:text-primary-600 dark:group-hover:text-primary-400" />
+                          <item.icon className="h-5 w-5 text-[var(--color-text-subtle)] group-hover:text-[var(--color-primary-600)]" />
                           <span className="font-medium">{item.name}</span>
                           {item.badge && (
-                            <span className="ml-auto flex-shrink-0 py-0.5 px-2 text-xs font-medium rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+                            <span className="ml-auto flex-shrink-0 py-0.5 px-2 text-xs font-medium rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-700)]">
                               {item.badge}
                             </span>
                           )}
                         </span>
                         <ChevronDownIcon
                           className={clsx(
-                            'h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200',
+                            'h-5 w-5 text-[var(--color-text-subtle)] transition-transform duration-200',
                             expandedMenus.includes(item.name) && 'rotate-180'
                           )}
                         />
                       </button>
                       {expandedMenus.includes(item.name) && (
-                        <div className="mt-1 ml-4 pl-4 space-y-1 border-l-2 border-gray-200 dark:border-gray-700">
+                        <div className="mt-1 ml-4 pl-4 space-y-1 border-l-2 border-[var(--color-border)]">
                           {item.submenu.map((subItem) => (
                             <NavItem
                               key={subItem.name}
@@ -148,8 +148,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </nav>
 
             {/* Footer */}
-            <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-3 border-t border-[var(--color-border)]">
+              <div className="flex items-center justify-between text-xs text-[var(--color-text-subtle)]">
                 <span>LeadFlowX v2.4.0</span>
                 <span className="ml-auto uppercase tracking-wide font-medium">
                   {density === 'compact' ? 'Cm' : 'Cf'}
@@ -166,22 +166,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
         'transition-all duration-300 ease-in-out',
         collapsed ? 'lg:w-20' : 'lg:w-64'
       )}>
-        <div className="flex flex-1 flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+        <div className="flex flex-1 flex-col bg-[var(--color-bg-surface)] border-r border-[var(--color-border)]">
           {/* Header */}
           <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white font-semibold text-lg">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary-600)] text-white font-semibold text-lg">
                 L
               </div>
               {!collapsed && (
-                <span className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                <span className="text-lg font-semibold text-[var(--color-text)] truncate">
                   LeadFlowX
                 </span>
               )}
             </div>
             <button
               onClick={toggleCollapse}
-              className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+              className="p-2.5 text-[var(--color-text)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-primary-500)_40%,transparent)]"
             >
               <ChevronDownIcon className={clsx('h-5 w-5 transition-transform duration-200', collapsed ? 'rotate-90' : '-rotate-90')} />
             </button>
@@ -196,10 +196,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   type="text"
                   className={clsx(
                     'w-full rounded-lg pl-10 pr-4 py-2 text-sm',
-                    'bg-gray-50 dark:bg-gray-800',
-                    'border border-gray-200 dark:border-gray-700',
-                    'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500/20'
+                    'bg-[var(--color-bg-subtle)]',
+                    'border border-[var(--color-border)]',
+                    'text-[var(--color-text)] placeholder-[var(--color-text-subtle)]',
+                    'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-primary-500)_40%,transparent)]'
                   )}
                   placeholder={t('shell.search.long')}
                   value={searchQuery}
@@ -219,19 +219,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onClick={() => toggleMenu(item.name)}
                       className={clsx(
                         'w-full group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200',
-                        'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white',
-                        'hover:bg-gray-100 dark:hover:bg-gray-800',
-                        'focus:outline-none focus:ring-2 focus:ring-primary-500/20'
+                        'text-[var(--color-text)]',
+                        'hover:bg-[var(--color-bg-subtle)]',
+                        'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-primary-500)_40%,transparent)]'
                       )}
                       aria-expanded={expandedMenus.includes(item.name)}
                     >
                       <span className="flex items-center gap-3 min-w-0">
-                        <item.icon className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-primary-600 dark:group-hover:text-primary-400" />
+                        <item.icon className="h-5 w-5 flex-shrink-0 text-[var(--color-text-subtle)] group-hover:text-[var(--color-primary-600)]" />
                         {!collapsed && (
                           <span className="font-medium truncate">{item.name}</span>
                         )}
                         {item.badge && !collapsed && (
-                          <span className="ml-auto flex-shrink-0 py-0.5 px-2 text-xs font-medium rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+                          <span className="ml-auto flex-shrink-0 py-0.5 px-2 text-xs font-medium rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-700)]">
                             {item.badge}
                           </span>
                         )}
@@ -239,14 +239,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       {!collapsed && (
                         <ChevronDownIcon
                           className={clsx(
-                            'h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200',
+                            'h-5 w-5 text-[var(--color-text-subtle)] transition-transform duration-200',
                             expandedMenus.includes(item.name) && 'rotate-180'
                           )}
                         />
                       )}
                     </button>
                     {expandedMenus.includes(item.name) && !collapsed && (
-                      <div className="mt-1 ml-4 pl-4 space-y-1 border-l-2 border-gray-200 dark:border-gray-700">
+                      <div className="mt-1 ml-4 pl-4 space-y-1 border-l-2 border-[var(--color-border)]">
                         {item.submenu.map((subItem) => (
                           <NavItem
                             key={subItem.name}
@@ -272,8 +272,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
 
           {/* Footer */}
-          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <div className="px-4 py-3 border-t border-[var(--color-border)]">
+            <div className="flex items-center justify-between text-xs text-[var(--color-text-subtle)]">
               {!collapsed && <span>LeadFlowX v2.4.0</span>}
               <span className="ml-auto uppercase tracking-wide font-medium">
                 {density === 'compact' ? 'Cm' : 'Cf'}

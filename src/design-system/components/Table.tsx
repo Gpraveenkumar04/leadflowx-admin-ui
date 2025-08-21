@@ -28,13 +28,13 @@ interface TableHeaderCellProps extends React.ThHTMLAttributes<HTMLTableHeaderCel
 const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, hover, striped, compact, children, ...props }, ref) => {
     return (
-      <div className="w-full overflow-auto">
+      <div className="w-full overflow-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)]">
         <table
           ref={ref}
           className={clsx(
             'w-full border-separate border-spacing-0',
-            hover && '[&_tr:hover]:bg-gray-50 dark:[&_tr:hover]:bg-gray-800/50',
-            striped && '[&_tr:nth-child(even)]:bg-gray-50 dark:[&_tr:nth-child(even)]:bg-gray-800/50',
+            hover && '[&_tr:hover]:bg-[var(--color-bg-subtle)]',
+            striped && '[&_tr:nth-child(even)]:bg-[color-mix(in_srgb,var(--color-bg-subtle)_60%,transparent)]',
             compact && '[&_td]:py-2 [&_th]:py-2',
             className
           )}
@@ -52,7 +52,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
     return (
       <thead
         ref={ref}
-        className={clsx('bg-gray-50 dark:bg-gray-800/50', className)}
+        className={clsx('bg-[var(--color-bg-subtle)]', className)}
         {...props}
       >
         {children}
@@ -102,7 +102,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       <td
         ref={ref}
         className={clsx(
-          'px-6 py-4 text-sm border-b border-gray-200 dark:border-gray-700',
+          'px-6 py-4 text-sm border-b border-[var(--color-border)]',
           truncate && 'max-w-[200px] truncate',
           className
         )}
@@ -120,8 +120,8 @@ const TableHeaderCell = React.forwardRef<HTMLTableHeaderCellElement, TableHeader
       <th
         ref={ref}
         className={clsx(
-          'px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700',
-          sortable && 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-200',
+          'px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-text-subtle)] border-b border-[var(--color-border)]',
+          sortable && 'cursor-pointer hover:text-[var(--color-text-muted)]',
           className
         )}
         onClick={sortable ? onSort : undefined}

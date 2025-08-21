@@ -235,6 +235,22 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  /* Subtle grid background utility for app shell */
+  .bg-grid-pattern {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in srgb, var(--color-border) 38%, transparent),
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
+  /* Brand gradient text utility */
+  .text-brand-gradient {
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-700));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
 :root {
   /* Primary (Indigo) - Modern, Professional */

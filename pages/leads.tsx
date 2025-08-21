@@ -25,7 +25,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { clsx } from 'clsx';
 import { Button, Badge, Modal } from '@/design-system/components';
 import BulkActions from '../src/components/BulkActions';
-import LeadTable from '../components/leads/LeadTable';
+import { LeadsDataTable } from '../components/leads/LeadsDataTable';
 
 // SavedView & Tag now imported from central types
 
@@ -325,21 +325,17 @@ export default function LeadsPage() {
         </div>
 
         {/* Leads Table */}
-        <LeadTable
+        <LeadsDataTable
           leads={allLeads}
           onLeadSelect={setSelectedLead}
           onLeadUpdate={handleLeadUpdate}
-          selectedLeads={selectedLeads}
-          onSelectLead={handleSelectLead}
-          onSelectAll={handleSelectAll}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
           tags={tags}
-          sort={sort}
-          setSort={setSort}
+          onSelectionChange={(selectedLeads) => {
+            setSelectedLeads(selectedLeads.map(lead => lead.id));
+          }}
           loading={loading}
-          hasMore={hasMore}
-          onEndReached={handleEndReached}
         />
 
         <BulkActions

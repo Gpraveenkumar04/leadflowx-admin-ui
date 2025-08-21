@@ -19,6 +19,12 @@ const DrillDownChart: React.FC<{ data: any[] }> = ({ data }) => {
             data={data}
             onClick={(e) => console.log('Drill-down data:', e)}
           >
+            <defs>
+              <linearGradient id="barGradient2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-primary-500)" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="var(--color-primary-500)" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey="source" stroke={tickColor} />
             <YAxis stroke={tickColor} />
@@ -29,7 +35,7 @@ const DrillDownChart: React.FC<{ data: any[] }> = ({ data }) => {
                 color: 'var(--color-text)',
               }}
             />
-            <Bar dataKey="count" fill="var(--color-primary-500)" />
+            <Bar dataKey="count" fill="url(#barGradient2)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

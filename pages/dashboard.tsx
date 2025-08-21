@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import Layout from '../src/components/Layout';
+import { Card, CardHeader, CardBody } from '@/design-system/components/Card';
 import { dashboardAPI } from '../src/services/api';
 import { DashboardMetrics } from '../src/types';
 import { io } from 'socket.io-client';
@@ -186,15 +187,15 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="animate-pulse">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-[var(--color-bg-subtle)] rounded-lg h-28"></div>
+              <Card key={i} className="animate-pulse h-28 bg-[var(--color-bg-surface)]" />
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-[var(--color-bg-subtle)] rounded-lg h-96"></div>
-            <div className="bg-[var(--color-bg-subtle)] rounded-lg h-96"></div>
+            <Card className="animate-pulse h-96 bg-[var(--color-bg-surface)]" />
+            <Card className="animate-pulse h-96 bg-[var(--color-bg-surface)]" />
           </div>
         </div>
       </Layout>
@@ -204,28 +205,29 @@ export default function Dashboard() {
   if (isError) {
     return (
       <Layout>
-        <div className="text-center py-12">
-          <p className="text-[var(--color-text-muted)] mb-4">
-            {error instanceof Error 
-              ? error.message 
-              : 'Failed to load dashboard data'}
-          </p>
-          {/* Only show retry button if it's not a server availability issue */}
-          {!(error instanceof Error && error.message.includes('not available')) && (
-            <button 
-              onClick={() => refetch()} 
-              className="btn btn-primary"
-              aria-label="Retry loading dashboard"
-            >
-              Retry
-            </button>
-          )}
-          <p className="text-sm text-[var(--color-text-muted)] mt-4">
-            {error instanceof Error && error.message.includes('not available')
-              ? 'Please start the backend server and refresh the page.'
-              : 'If the problem persists, please contact support.'}
-          </p>
-        </div>
+        <Card className="text-center py-12">
+          <CardBody>
+            <p className="text-[var(--color-text-muted)] mb-4">
+              {error instanceof Error 
+                ? error.message 
+                : 'Failed to load dashboard data'}
+            </p>
+            {!(error instanceof Error && error.message.includes('not available')) && (
+              <button 
+                onClick={() => refetch()} 
+                className="button button-primary"
+                aria-label="Retry loading dashboard"
+              >
+                Retry
+              </button>
+            )}
+            <p className="text-sm text-[var(--color-text-muted)] mt-4">
+              {error instanceof Error && error.message.includes('not available')
+                ? 'Please start the backend server and refresh the page.'
+                : 'If the problem persists, please contact support.'}
+            </p>
+          </CardBody>
+        </Card>
       </Layout>
     );
   }
@@ -324,15 +326,23 @@ export default function Dashboard() {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Leads by Source */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.charts.leads_by_source.title')}</h3>
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.charts.leads_by_source.desc')}</p>
-            </div>
-            <div className="card-body">
+          <Card>
+            <CardHeader>
+              <div>
+                <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.charts.leads_by_source.title')}</h3>
+                <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.charts.leads_by_source.desc')}</p>
+              </div>
+            </CardHeader>
+            <CardBody>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={metrics.leadsBySource}>
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--color-primary-500)" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="var(--color-primary-500)" stopOpacity="0.4" />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis dataKey="source" stroke={tickColor} />
                     <YAxis stroke={tickColor} />
@@ -343,20 +353,22 @@ export default function Dashboard() {
                         color: 'var(--color-text)',
                       }}
                     />
-                    <Bar dataKey="count" fill="var(--color-primary-500)" />
+                    <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
 
           {/* Status Funnel */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.charts.status_funnel.title')}</h3>
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.charts.status_funnel.desc')}</p>
-            </div>
-            <div className="card-body">
+          <Card>
+            <CardHeader>
+              <div>
+                <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.charts.status_funnel.title')}</h3>
+                <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.charts.status_funnel.desc')}</p>
+              </div>
+            </CardHeader>
+            <CardBody>
               <div className="space-y-4">
                 {Object.entries(metrics.statusFunnel).map(([status, count], index) => {
                   const total = Object.values(metrics.statusFunnel).reduce((a, b) => a + b, 0);
@@ -380,20 +392,22 @@ export default function Dashboard() {
                   );
                 })}
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
         </div>
 
         {/* Real-time Activity Feed */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.activity.title')}</h3>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.activity.desc')}</p>
-          </div>
-          <div className="card-body">
+        <Card>
+          <CardHeader>
+            <div>
+              <h3 className="text-lg font-medium text-[var(--color-text)]">{t('dashboard.activity.title')}</h3>
+              <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('dashboard.activity.desc')}</p>
+            </div>
+          </CardHeader>
+          <CardBody>
             <div className="text-sm text-[var(--color-text-muted)]">No recent activity</div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
 
         {/* Drill Down Chart */}

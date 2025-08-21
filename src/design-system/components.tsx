@@ -22,11 +22,11 @@ const buttonSizes: Record<string, string> = {
   lg: 'text-base h-11 px-6'
 };
 const buttonVariants: Record<string, string> = {
-  primary: 'bg-primary-600 text-white hover:bg-primary-500 active:bg-primary-700 focus-visible:ring-primary-500',
-  secondary: 'bg-secondary-100 text-secondary-800 hover:bg-secondary-200 active:bg-secondary-300 focus-visible:ring-secondary-400',
-  outline: 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 focus-visible:ring-primary-500',
-  ghost: 'text-gray-600 hover:bg-gray-100 active:bg-gray-200 focus-visible:ring-primary-500',
-  danger: 'bg-danger-600 text-white hover:bg-danger-500 active:bg-danger-700 focus-visible:ring-danger-500'
+  primary: 'bg-[var(--color-primary-600)] text-white hover:bg-[var(--color-primary-500)] active:bg-[var(--color-primary-700)] focus-visible:ring-[var(--color-primary-500)]',
+  secondary: 'bg-[var(--color-bg-subtle)] text-[var(--color-text)] hover:bg-[var(--color-bg-inset)] active:bg-[var(--color-bg-inset)] focus-visible:ring-[var(--color-primary-400)]',
+  outline: 'border border-[var(--color-border)] text-[var(--color-text)] bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-subtle)] active:bg-[var(--color-bg-inset)] focus-visible:ring-[var(--color-primary-500)]',
+  ghost: 'text-[var(--color-text)] hover:bg-[var(--color-bg-subtle)] active:bg-[var(--color-bg-inset)] focus-visible:ring-[var(--color-primary-500)]',
+  danger: 'bg-[var(--color-danger-600)] text-white hover:bg-[var(--color-danger-500)] active:bg-[var(--color-danger-700)] focus-visible:ring-[var(--color-danger-500)]'
 };
 
 export const Button: React.FC<ButtonProps> = ({ variant='primary', size='md', loading, leftIcon, rightIcon, block, className, children, ...rest }) => (
@@ -75,10 +75,10 @@ export const Badge: React.FC<BadgeProps> = ({ color='gray', size='md', className
  * CARD
  *****************/
 export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...rest }) => (
-  <div className={clsx('bg-white dark:bg-secondary-800 border border-gray-200 dark:border-secondary-700 rounded-lg shadow-soft', className)} {...rest}>{children}</div>
+  <div className={clsx('bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-sm', className)} {...rest}>{children}</div>
 );
 export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...rest }) => (
-  <div className={clsx('px-4 py-3 border-b border-gray-200 dark:border-secondary-700 flex items-center justify-between', className)} {...rest}>{children}</div>
+  <div className={clsx('px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between', className)} {...rest}>{children}</div>
 );
 export const CardBody: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...rest }) => (
   <div className={clsx('px-4 py-4', className)} {...rest}>{children}</div>
@@ -97,18 +97,18 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 export const Input: React.FC<InputProps> = ({ leftIcon, rightIcon, error, className, ...rest }) => (
   <div className={clsx('relative', className)}>
-    {leftIcon && <span className='absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400'>{leftIcon}</span>}
+    {leftIcon && <span className='absolute inset-y-0 left-0 pl-3 flex items-center text-[var(--color-text-subtle)]'>{leftIcon}</span>}
     <input
       className={clsx(
-        'w-full rounded-md border-gray-300 dark:border-secondary-600 dark:bg-secondary-700 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 text-sm',
+        'w-full rounded-md border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text)] focus:border-[var(--color-primary-500)] focus:ring-[var(--color-primary-500)] text-sm',
         leftIcon && 'pl-9',
         rightIcon && 'pr-9',
-        error && 'border-danger-500 focus:border-danger-500 focus:ring-danger-500'
+        error && 'border-[var(--color-danger-500)] focus:border-[var(--color-danger-500)] focus:ring-[var(--color-danger-500)]'
       )}
       {...rest}
     />
-    {rightIcon && <span className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400'>{rightIcon}</span>}
-    {error && <p className='mt-1 text-xs text-danger-600'>{error}</p>}
+    {rightIcon && <span className='absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-subtle)]'>{rightIcon}</span>}
+    {error && <p className='mt-1 text-xs text-[var(--color-danger-600)]'>{error}</p>}
   </div>
 );
 
@@ -117,7 +117,7 @@ export const Input: React.FC<InputProps> = ({ leftIcon, rightIcon, error, classN
  *****************/
 export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className, children, ...rest }) => (
   <select
-    className={clsx('w-full rounded-md border-gray-300 dark:border-secondary-600 dark:bg-secondary-700 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 text-sm', className)}
+    className={clsx('w-full rounded-md border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text)] focus:border-[var(--color-primary-500)] focus:ring-[var(--color-primary-500)] text-sm', className)}
     {...rest}
   >{children}</select>
 );

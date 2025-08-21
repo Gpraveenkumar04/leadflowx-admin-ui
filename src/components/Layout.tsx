@@ -113,7 +113,7 @@ function LayoutCore({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 antialiased">
+    <div className="min-h-screen text-gray-900 dark:text-gray-100 antialiased bg-[var(--color-bg-app)] bg-grid-pattern">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
@@ -159,11 +159,9 @@ function LayoutCore({ children }: LayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 relative">
-          <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto">
-            <div className="relative">
-              <div className="relative space-y-6">
-                {children}
-              </div>
+          <div className="py-8 px-4 sm:px-6 lg:px-10 max-w-[1600px] mx-auto w-full">
+            <div className="relative space-y-8">
+              {children}
             </div>
           </div>
         </main>
